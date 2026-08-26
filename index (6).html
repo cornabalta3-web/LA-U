@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B0E14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Urracas</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap');
+
+:root{
+  --azul: #3B7BF0;
+  --azul-dark: #1B49A8;
+  --azul-soft: #7FADFF;
+  --fondo: #0B0E14;
+  --superficie: #151A23;
+  --superficie-2: #1E242F;
+  --superficie-3: #2A313E;
+  --tinta: #EDF1F7;
+  --tinta-suave: #97A1B2;
+  --ok: #35C46B;
+  --ok-bg: rgba(53,196,107,0.14);
+  --pend: #F26058;
+  --pend-bg: rgba(242,96,88,0.14);
+  --oro: #FFC940;
+  --linea: rgba(237,241,247,0.10);
+  --radio: 14px;
+}
+
+*{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+html,body{ margin:0; padding:0; }
+body{
+  background: var(--fondo);
+  color: var(--tinta);
+  font-family:'Work Sans', -apple-system, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.45;
+  min-height:100vh;
+  overscroll-behavior-y: none;
+}
+
+.app{
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 0 14px calc(96px + env(safe-area-inset-bottom));
+}
+
+/* ============ HEADER ============ */
+.header{
+  position: relative;
+  margin: 0 -14px 16px;
+  padding: calc(16px + env(safe-area-inset-top)) 16px 18px;
+  background:
+    radial-gradient(120% 100% at 50% 0%, #24408A 0%, #10192B 55%, var(--fondo) 100%);
+  border-bottom: 1px solid var(--linea);
+}
+.header-top{ display:flex; align-items:center; gap: 12px; }
+.escudo{ flex-shrink:0; filter: drop-shadow(0 3px 8px rgba(0,0,0,0.5)); }
+.header-txt{ flex:1; min-width:0; }
+.header-txt h1{
+  font-family:'Bebas Neue', sans-serif;
+  font-size: clamp(26px, 8vw, 34px);
+  letter-spacing: 2px;
+  margin: 0;
+  line-height: 1;
+  color:#fff;
+}
+.header-txt .fecha{
+  font-size: 12.5px;
+  color: var(--tinta-suave);
+  text-transform: capitalize;
+  margin-top: 2px;
+}
+.perfil-chip{
+  display:flex; align-items:center; gap:8px;
+  margin-top: 14px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 999px;
+  padding: 7px 8px 7px 14px;
+  font-size: 14px;
+}
+.perfil-chip .nom{ font-weight:700; }
+.perfil-chip .capitan{
+  background: var(--oro); color:#3A2A00;
+  font-family:'Bebas Neue',sans-serif; font-size: 11px; letter-spacing:.7px;
+  padding: 3px 8px; border-radius: 999px;
+}
+.perfil-chip .salir{
+  margin-left:auto;
+  background: rgba(255,255,255,0.12);
+  border:none; color: var(--tinta);
+  font-size: 12.5px; font-weight:600;
+  padding: 7px 13px; border-radius: 999px;
+  min-height: 0; cursor:pointer;
+}
+
+/* ============ STATS ============ */
+.stats{ display:grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 14px; }
+.stat{
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 12px;
+  padding: 11px 6px;
+  text-align:center;
+}
+.stat .num{
+  font-family:'JetBrains Mono', monospace;
+  font-size: clamp(18px, 6vw, 23px); font-weight:700;
+  color: var(--oro); display:block; line-height:1.1;
+}
+.stat .lbl{
+  font-size: 9.5px; text-transform: uppercase; letter-spacing: .5px;
+  color: var(--tinta-suave); margin-top: 3px; display:block;
+}
+
+/* ============ CARDS ============ */
+.card{
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.card h2{
+  font-family:'Bebas Neue', sans-serif;
+  letter-spacing: .8px; font-size: 20px;
+  margin: 0 0 4px; color: #fff;
+}
+.card .hint{ font-size: 13px; color: var(--tinta-suave); margin: 0 0 14px; }
+.card h2 + .lista, .card h2 + .row{ margin-top: 12px; }
+
+/* ============ CONTROLES ============ */
+.row{ display:flex; gap:8px; margin-bottom: 10px; }
+.row.col{ flex-direction: column; }
+.row > *{ flex:1; min-width:0; }
+
+input, select{
+  font-family:'Work Sans', sans-serif;
+  font-size: 16px; /* 16px evita el zoom automático en iPhone */
+  padding: 13px 12px;
+  border-radius: 11px;
+  border: 1px solid var(--linea);
+  background: var(--superficie-2);
+  color: var(--tinta);
+  width:100%;
+  -webkit-appearance:none; appearance:none;
+}
+select{
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2397A1B2' stroke-width='2'%3e%3cpath d='M6 9l6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat:no-repeat; background-position: right 12px center; background-size: 18px;
+  padding-right: 38px;
+}
+input::placeholder{ color: #63708A; }
+input:focus, select:focus{ outline:none; border-color: var(--azul); }
+
+button{
+  font-family:'Work Sans', sans-serif;
+  font-weight:700; font-size: 15px;
+  padding: 13px 16px;
+  border-radius: 11px; border:none;
+  background: var(--azul); color:#fff;
+  cursor:pointer; min-height: 48px;
+  display:inline-flex; align-items:center; justify-content:center; gap:6px;
+}
+button:active{ transform: scale(0.98); }
+button.ghost{ background: var(--superficie-2); color: var(--tinta); border:1px solid var(--linea); }
+button.danger{ background: var(--pend-bg); color: var(--pend); border:1px solid rgba(242,96,88,0.35); }
+button.mini{ min-height: 38px; padding: 8px 12px; font-size: 13px; border-radius: 9px; }
+button:disabled{ opacity:.4; }
+button.full{ width:100%; }
+
+/* ============ LISTA DE JUGADORES ============ */
+.lista{ list-style:none; margin:0; padding:0; }
+.item{
+  display:flex; align-items:center; gap: 10px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--linea);
+}
+.item:last-child{ border-bottom:none; }
+.item-main{ flex:1; min-width:0; }
+.item-nom{ font-weight:600; font-size: 15.5px; display:block; }
+.item-sub{ font-size: 11.5px; color: var(--tinta-suave); margin-top: 2px; display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+.yo{ color: var(--azul-soft); font-weight:700; font-size: 11.5px; }
+
+/* Píldoras de estado */
+.pill{
+  font-size: 11px; font-weight:700; letter-spacing:.3px;
+  padding: 4px 9px; border-radius: 999px;
+  background: var(--superficie-3); color: var(--tinta-suave);
+  white-space:nowrap;
+}
+.pill.ok{ background: var(--ok-bg); color: var(--ok); }
+.pill.no{ background: var(--pend-bg); color: var(--pend); }
+.pill.oro{ background: rgba(255,201,64,.16); color: var(--oro); }
+
+/* Botón toggle de estado */
+.toggle{
+  font-family:'Bebas Neue', sans-serif;
+  font-size: 13px; letter-spacing:.8px;
+  padding: 9px 14px; border-radius: 999px;
+  border: 1.5px solid var(--ok); color: var(--ok);
+  background: var(--ok-bg);
+  cursor:pointer; min-height: 40px; white-space:nowrap;
+  display:inline-flex; align-items:center;
+}
+.toggle.no{ border-color: var(--pend); color: var(--pend); background: var(--pend-bg); }
+.toggle.off{ opacity:.35; pointer-events:none; }
+
+/* ============ MI RESPUESTA (destacado) ============ */
+.destacado{
+  background: linear-gradient(150deg, rgba(59,123,240,.18), rgba(59,123,240,.05));
+  border: 1.5px solid rgba(59,123,240,.5);
+  border-radius: var(--radio);
+  padding: 15px;
+  margin-bottom: 16px;
+}
+.destacado .titulo{
+  font-family:'Bebas Neue',sans-serif; font-size: 17px; letter-spacing:.5px;
+  color:#fff; margin-bottom: 11px;
+}
+.destacado .row{ margin-bottom:0; }
+.destacado button{ font-size: 16px; padding: 15px; }
+.btn-si{ background: var(--ok); color:#06230F; }
+.btn-si.inactivo{ background: var(--superficie-2); color: var(--tinta-suave); border:1px solid var(--linea); }
+.btn-no{ background: var(--pend); color:#2B0605; }
+.btn-no.inactivo{ background: var(--superficie-2); color: var(--tinta-suave); border:1px solid var(--linea); }
+
+/* ============ EVENTOS (amistoso / asado) ============ */
+.evento{
+  background: var(--superficie-2);
+  border: 1px solid var(--linea);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.evento-cab{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom: 12px; }
+.evento-tit{ font-weight:700; font-size: 16px; }
+.evento-meta{ font-size: 12.5px; color: var(--tinta-suave); margin-top:2px; }
+
+.tags{ display:flex; flex-wrap:wrap; gap:6px; margin-top: 10px; }
+.tag{
+  font-size: 12.5px; font-weight:600;
+  background: rgba(59,123,240,.18); color: var(--azul-soft);
+  border: 1px solid rgba(59,123,240,.3);
+  border-radius: 8px; padding: 6px 10px;
+}
+.tag.quitar{ cursor:pointer; }
+.tag.quitar::after{ content:" ✕"; opacity:.6; }
+
+.vacio{ font-size: 13.5px; color: var(--tinta-suave); padding: 12px 0; text-align:center; }
+.aviso{
+  font-size: 13px; background: rgba(242,96,88,.1);
+  border-left: 3px solid var(--pend); color: #FFC9C6;
+  padding: 10px 12px; border-radius: 8px; margin-bottom: 12px;
+}
+.aviso.info{ background: rgba(59,123,240,.1); border-left-color: var(--azul); color: var(--azul-soft); }
+
+.separador{ font-size: 12px; color: var(--tinta-suave); text-transform:uppercase; letter-spacing:.6px; margin: 18px 0 8px; font-weight:700; }
+
+/* ============ NAV INFERIOR ============ */
+.nav{
+  position: fixed; bottom:0; left:0; right:0;
+  background: rgba(15,19,27,.94);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid var(--linea);
+  display:flex;
+  padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+  z-index: 40;
+}
+.nav-btn{
+  flex:1; background:none; border:none; padding: 7px 2px;
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  color: var(--tinta-suave); min-height:auto; border-radius: 10px;
+}
+.nav-btn svg{ width:21px; height:21px; }
+.nav-btn span{ font-size: 9.5px; font-weight:700; letter-spacing:.2px; text-transform:uppercase; }
+.nav-btn.on{ color: var(--azul-soft); background: rgba(59,123,240,.1); }
+
+/* ============ MODAL ============ */
+.overlay{
+  position:fixed; inset:0; background: rgba(6,9,14,.82);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  display:flex; align-items:center; justify-content:center;
+  padding: 18px; z-index: 100;
+}
+.modal{
+  background: var(--superficie);
+  border:1px solid rgba(59,123,240,.35);
+  border-radius: 20px; padding: 24px 20px;
+  width:100%; max-width: 400px;
+  max-height: 88vh; overflow-y:auto;
+}
+.modal .escudo-modal{ display:flex; justify-content:center; margin-bottom: 12px; }
+.modal h2{
+  font-family:'Bebas Neue',sans-serif; font-size: 27px; letter-spacing:1px;
+  color:#fff; margin:0; text-align:center;
+}
+.modal .sub{ font-size: 14px; color: var(--tinta-suave); margin: 4px 0 20px; text-align:center; }
+.modal label{ font-size: 13px; font-weight:700; display:block; margin-bottom: 6px; color: var(--tinta-suave); }
+.campo{ margin-bottom: 14px; }
+.check{
+  display:flex; align-items:center; gap: 10px; margin-bottom: 14px;
+  background: var(--superficie-2); padding: 12px; border-radius: 11px;
+  cursor:pointer;
+}
+.check input{ width:20px; height:20px; flex:0 0 auto; accent-color: var(--azul); }
+.check label{ margin:0; font-size: 14.5px; color: var(--tinta); font-weight:600; cursor:pointer; }
+.error{ color: var(--pend); font-size: 13px; margin-bottom: 12px; display:none; background: var(--pend-bg); padding: 9px 11px; border-radius: 9px; }
+
+.tabs-modal{ display:flex; gap:8px; margin-bottom: 18px; }
+.tabs-modal button{ flex:1; font-size: 14px; }
+
+/* ============ INFO DEL PARTIDO ============ */
+.info-partido{
+  background: rgba(0,0,0,.25);
+  border-radius: 11px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+.info-hora{
+  font-family:'Bebas Neue',sans-serif;
+  font-size: 30px; letter-spacing:1px; line-height:1;
+  color: var(--oro); margin-bottom: 6px;
+}
+.info-linea{ font-size: 13.5px; color: var(--tinta); margin-top: 3px; }
+
+/* ============ FILAS DE DETALLE (modal) ============ */
+.detalle-filas{ margin-top: 4px; }
+.det-fila{
+  display:flex; justify-content:space-between; align-items:center; gap:12px;
+  padding: 11px 0; border-bottom:1px solid var(--linea);
+}
+.det-fila:last-child{ border-bottom:none; }
+.det-lbl{ font-size: 13px; color: var(--tinta-suave); font-weight:600; }
+.det-val{ font-size: 15px; font-weight:700; text-align:right; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <div class="header-top">
+      <svg class="escudo" width="46" height="46" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <path d="M50 5 L88 22 V52 C88 74 71 89 50 95 C29 89 12 74 12 52 V22 Z" fill="#0B1220" stroke="#7FADFF" stroke-width="3.5"/>
+        <g transform="translate(50,55)">
+          <path d="M-27 5 C-20 -9 -5 -17 8 -14 C17 -12 24 -5 27 3 L35 1 L26 10 C19 19 6 24 -6 21 C-17 19 -25 13 -27 5 Z" fill="#fff"/>
+          <path d="M-27 5 C-20 -9 -9 -15 -2 -15 C-8 -6 -15 3 -23 8 C-26 9 -27 7 -27 5 Z" fill="#0B1220"/>
+          <circle cx="15" cy="-7" r="2.3" fill="#0B1220"/>
+          <path d="M25 -4 L35 1 L25 5 Z" fill="#0B1220"/>
+        </g>
+      </svg>
+      <div class="header-txt">
+        <h1>URRACAS</h1>
+        <div class="fecha" id="fecha-hoy"></div>
+      </div>
+    </div>
+    <div class="perfil-chip" id="perfil-chip"></div>
+    <div class="stats">
+      <div class="stat"><span class="num" id="st-plantel">0</span><span class="lbl">Plantel</span></div>
+      <div class="stat"><span class="num" id="st-cuota">0</span><span class="lbl">Pagaron</span></div>
+      <div class="stat"><span class="num" id="st-sabado">0</span><span class="lbl">Van sábado</span></div>
+    </div>
+  </div>
+
+  <div id="contenido"></div>
+</div>
+
+<nav class="nav" id="nav"></nav>
+<div id="modal-root"></div>
+
+<script>
+// ======= CONFIGURACIÓN DE FIREBASE =======
+const firebaseConfig = {
+  apiKey: "AIzaSyA1m-4f1tg0uffUfPKSQBB5kyFoGGSNo3w",
+  authDomain: "urracas-fe915.firebaseapp.com",
+  databaseURL: "https://urracas-fe915-default-rtdb.firebaseio.com",
+  projectId: "urracas-fe915"
+};
+firebase.initializeApp(firebaseConfig);
+const equipoRef = firebase.database().ref("equipo-la-u");
+// ==========================================
+
+const PERSONAL_KEY = "mi-perfil-la-u";
+const CODIGO_CAPITAN = "LAU-CAPITAN";
+
+let data = {
+  jugadores: [], admins: [],
+  fechaCuotaActual: null, fechasCuota: [],
+  cuota: {}, sabados: {}, sabadoConfig: {}, amistosos: [], asados: []
+};
+let miPerfil = null;
+
+function uid(){ return Math.random().toString(36).slice(2,9); }
+function proximoSabado(){
+  const d = new Date();
+  const diff = (6 - d.getDay() + 7) % 7 || 7;
+  const s = new Date(d);
+  s.setDate(d.getDate() + (d.getDay()===6 ? 0 : diff));
+  return s.toISOString().slice(0,10);
+}
+function fechaLinda(iso){
+  if(!iso) return "";
+  const [a,m,d] = iso.split("-");
+  return `${d}/${m}`;
+}
+function nombreDe(id){
+  const j = data.jugadores.find(x=>x.id===id);
+  return j ? j.nombre : "(?)";
+}
+function esAdmin(id){ return data.admins.includes(id); }
+function soyCapitan(){ return miPerfil && esAdmin(miPerfil.id); }
+function fechaCuotaVigente(){
+  return data.fechasCuota.length ? data.fechasCuota[data.fechasCuota.length-1] : null;
+}
+function etiquetaFecha(id){
+  const i = data.fechasCuota.indexOf(id);
+  return i >= 0 ? "Fecha " + (i+1) : "Fecha ?";
+}
+function estadoCuota(fecha, pid){
+  if(!fecha) return {declarado:false, confirmado:false};
+  if(!data.cuota[fecha]) data.cuota[fecha] = {};
+  const a = data.cuota[fecha][pid];
+  if(!a || typeof a !== "object") data.cuota[fecha][pid] = {declarado:false, confirmado:false};
+  return data.cuota[fecha][pid];
+}
+function partidosJugados(pid){
+  return Object.values(data.sabados||{}).filter(a=>Array.isArray(a)&&a.includes(pid)).length;
+}
+function cuotaAlDia(pid){
+  const f = fechaCuotaVigente();
+  return f ? estadoCuota(f, pid).confirmado : false;
+}
+
+// ---------- CONFIG DEL PARTIDO DEL SÁBADO ----------
+const LUGARES = ["Tribunales", "Taborín", "Otro"];
+const CUPO_INTERNO = 14;
+
+function configSabado(fecha){
+  if(!data.sabadoConfig[fecha] || typeof data.sabadoConfig[fecha] !== "object"){
+    data.sabadoConfig[fecha] = { hora:"", lugar:"Tribunales", lugarOtro:"", modo:"interno", rival:"" };
+  }
+  const c = data.sabadoConfig[fecha];
+  if(!c.lugar) c.lugar = "Tribunales";
+  if(!c.modo) c.modo = "interno";
+  if(c.hora === undefined) c.hora = "";
+  if(c.lugarOtro === undefined) c.lugarOtro = "";
+  if(c.rival === undefined) c.rival = "";
+  return c;
+}
+function textoLugar(c){
+  return c.lugar === "Otro" ? (c.lugarOtro || "A confirmar") : c.lugar;
+}
+function textoModo(c){
+  return c.modo === "interno" ? "Entre nosotros" : (c.rival ? "vs " + c.rival : "Contra otro equipo");
+}
+
+// ---------- VENTANA DE DETALLE (con escudo) ----------
+const ESCUDO_SVG = `<svg width="70" height="70" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <path d="M50 5 L88 22 V52 C88 74 71 89 50 95 C29 89 12 74 12 52 V22 Z" fill="#0B1220" stroke="#7FADFF" stroke-width="3.5"/>
+  <g transform="translate(50,55)">
+    <path d="M-27 5 C-20 -9 -5 -17 8 -14 C17 -12 24 -5 27 3 L35 1 L26 10 C19 19 6 24 -6 21 C-17 19 -25 13 -27 5 Z" fill="#fff"/>
+    <path d="M-27 5 C-20 -9 -9 -15 -2 -15 C-8 -6 -15 3 -23 8 C-26 9 -27 7 -27 5 Z" fill="#0B1220"/>
+    <circle cx="15" cy="-7" r="2.3" fill="#0B1220"/>
+    <path d="M25 -4 L35 1 L25 5 Z" fill="#0B1220"/>
+  </g></svg>`;
+
+function abrirDetalle({titulo, sub, filas, anotados}){
+  const root = document.getElementById("modal-root");
+  root.innerHTML = `
+    <div class="overlay" id="ov-detalle">
+      <div class="modal">
+        <div class="escudo-modal">${ESCUDO_SVG}</div>
+        <h2>${titulo}</h2>
+        <p class="sub">${sub || ""}</p>
+        <div class="detalle-filas">
+          ${filas.map(f=>`<div class="det-fila"><span class="det-lbl">${f.lbl}</span><span class="det-val">${f.val}</span></div>`).join("")}
+        </div>
+        ${anotados && anotados.length ? `
+          <div class="separador">Anotados (${anotados.length})</div>
+          <div class="tags">${anotados.map(n=>`<span class="tag">${n}</span>`).join("")}</div>
+        ` : ""}
+        <button class="full ghost" id="cerrar-detalle" style="margin-top:18px;">Cerrar</button>
+      </div>
+    </div>`;
+  const cerrar = ()=>{ root.innerHTML=""; };
+  document.getElementById("cerrar-detalle").onclick = cerrar;
+  document.getElementById("ov-detalle").onclick = (e)=>{ if(e.target.id==="ov-detalle") cerrar(); };
+}
+
+// ---------- STORAGE ----------
+function cargarPersonal(){
+  try{ const r = localStorage.getItem(PERSONAL_KEY); if(r) miPerfil = JSON.parse(r); }
+  catch(e){ miPerfil = null; }
+}
+function guardarPersonal(){
+  try{ localStorage.setItem(PERSONAL_KEY, JSON.stringify(miPerfil)); }catch(e){}
+}
+function cerrarSesion(){
+  try{ localStorage.removeItem(PERSONAL_KEY); }catch(e){}
+  miPerfil = null;
+  mostrarModal();
+}
+async function guardar(){
+  try{ await equipoRef.set(data); }
+  catch(e){ console.error("Error guardando en Firebase:", e); }
+}
+function sanitizar(){
+  // Firebase elimina arrays/objetos vacíos: hay que reponerlos al leer.
+  if(!Array.isArray(data.jugadores)) data.jugadores = [];
+  if(!Array.isArray(data.admins)) data.admins = [];
+  if(!Array.isArray(data.fechasCuota)) data.fechasCuota = [];
+  if(!data.cuota || typeof data.cuota!=="object") data.cuota = {};
+  if(!data.sabados || typeof data.sabados!=="object") data.sabados = {};
+  if(!data.sabadoConfig || typeof data.sabadoConfig!=="object") data.sabadoConfig = {};
+  if(!Array.isArray(data.amistosos)) data.amistosos = [];
+  data.amistosos.forEach(a=>{ if(!Array.isArray(a.anotados)) a.anotados = []; });
+  if(!Array.isArray(data.asados)) data.asados = [];
+  data.asados.forEach(a=>{ if(!Array.isArray(a.aportes)) a.aportes = []; });
+}
+function arrancar(){
+  cargarPersonal();
+  equipoRef.on("value", snap=>{
+    const v = snap.val();
+    if(v) data = Object.assign(data, v);
+    sanitizar();
+    if(!data.fechasCuota.length){ data.fechasCuota.push(uid()); }
+    if(!data.fechaCuotaActual || !data.fechasCuota.includes(data.fechaCuotaActual)){
+      data.fechaCuotaActual = fechaCuotaVigente();
+    }
+    // Si mi perfil ya no existe en el plantel, pido volver a identificarse
+    if(miPerfil && !data.jugadores.find(j=>j.id===miPerfil.id)){
+      miPerfil = null;
+      try{ localStorage.removeItem(PERSONAL_KEY); }catch(e){}
+    }
+    if(!miPerfil){ mostrarModal(); }
+    else { document.getElementById("modal-root").innerHTML=""; render(); }
+  }, err=>{
+    console.error("Error leyendo Firebase:", err);
+  });
+}
+
+// ---------- MODAL DE INGRESO ----------
+function mostrarModal(){
+  const root = document.getElementById("modal-root");
+  const jug = data.jugadores || [];
+  root.innerHTML = `
+    <div class="overlay">
+      <div class="modal">
+        <div class="escudo-modal">
+          <svg width="56" height="56" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 5 L88 22 V52 C88 74 71 89 50 95 C29 89 12 74 12 52 V22 Z" fill="#0B1220" stroke="#7FADFF" stroke-width="3.5"/>
+            <g transform="translate(50,55)">
+              <path d="M-27 5 C-20 -9 -5 -17 8 -14 C17 -12 24 -5 27 3 L35 1 L26 10 C19 19 6 24 -6 21 C-17 19 -25 13 -27 5 Z" fill="#fff"/>
+              <path d="M-27 5 C-20 -9 -9 -15 -2 -15 C-8 -6 -15 3 -23 8 C-26 9 -27 7 -27 5 Z" fill="#0B1220"/>
+              <circle cx="15" cy="-7" r="2.3" fill="#0B1220"/>
+              <path d="M25 -4 L35 1 L25 5 Z" fill="#0B1220"/>
+            </g>
+          </svg>
+        </div>
+        <h2>URRACAS</h2>
+        <p class="sub">Entrá para anotarte al equipo</p>
+
+        <div class="tabs-modal">
+          <button type="button" id="t-existente">Ya estoy en la lista</button>
+          <button type="button" id="t-nuevo" class="ghost">Soy nuevo</button>
+        </div>
+
+        <div id="bl-existente">
+          <div class="error" id="err2"></div>
+          ${jug.length ? `
+            <div class="campo">
+              <label>Elegí tu nombre</label>
+              <select id="sel-existente">
+                <option value="">Seleccioná...</option>
+                ${jug.map(j=>`<option value="${j.id}">${j.nombre}</option>`).join("")}
+              </select>
+            </div>
+            <button class="full" id="btn-existente">Entrar</button>
+          ` : `<p class="vacio">Todavía no hay nadie anotado. Usá "Soy nuevo".</p>`}
+        </div>
+
+        <div id="bl-nuevo" style="display:none;">
+          <div class="error" id="err1"></div>
+          <div class="campo">
+            <label>Tu nombre</label>
+            <input type="text" id="in-nombre" placeholder="Ej. Fede" autocomplete="off">
+          </div>
+          <div class="check" id="check-cap">
+            <input type="checkbox" id="in-capitan">
+            <label for="in-capitan">Soy capitán</label>
+          </div>
+          <div class="campo" id="wrap-codigo" style="display:none;">
+            <label>Código de capitán</label>
+            <input type="text" id="in-codigo" placeholder="Te lo pasó el organizador" autocomplete="off">
+          </div>
+          <button class="full" id="btn-nuevo">Entrar</button>
+        </div>
+      </div>
+    </div>`;
+
+  const tE = document.getElementById("t-existente");
+  const tN = document.getElementById("t-nuevo");
+  tE.onclick = ()=>{
+    document.getElementById("bl-existente").style.display="block";
+    document.getElementById("bl-nuevo").style.display="none";
+    tE.className=""; tN.className="ghost";
+  };
+  tN.onclick = ()=>{
+    document.getElementById("bl-existente").style.display="none";
+    document.getElementById("bl-nuevo").style.display="block";
+    tN.className=""; tE.className="ghost";
+  };
+  if(!jug.length) tN.onclick();
+
+  document.getElementById("in-capitan").onchange = e=>{
+    document.getElementById("wrap-codigo").style.display = e.target.checked ? "block":"none";
+  };
+
+  document.getElementById("btn-nuevo").onclick = async ()=>{
+    const nombre = document.getElementById("in-nombre").value.trim();
+    const cap = document.getElementById("in-capitan").checked;
+    const cod = document.getElementById("in-codigo").value.trim();
+    const err = document.getElementById("err1");
+    err.style.display="none";
+    if(!nombre){ err.textContent="Poné tu nombre."; err.style.display="block"; return; }
+    if(cap && cod !== CODIGO_CAPITAN){ err.textContent="Código de capitán incorrecto."; err.style.display="block"; return; }
+    const id = uid();
+    miPerfil = {id, nombre};
+    data.jugadores.push({id, nombre});
+    if(cap) data.admins.push(id);
+    guardarPersonal();
+    await guardar();
+    root.innerHTML="";
+    render();
+  };
+
+  const btnE = document.getElementById("btn-existente");
+  if(btnE) btnE.onclick = ()=>{
+    const sel = document.getElementById("sel-existente");
+    const err = document.getElementById("err2");
+    err.style.display="none";
+    if(!sel.value){ err.textContent="Elegí tu nombre de la lista."; err.style.display="block"; return; }
+    const j = data.jugadores.find(x=>x.id===sel.value);
+    if(!j) return;
+    miPerfil = {id:j.id, nombre:j.nombre};
+    guardarPersonal();
+    root.innerHTML="";
+    render();
+  };
+}
+
+// ---------- NAV ----------
+const ICONOS = {
+  sabado: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg>',
+  amistosos:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  cuota:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 10h20"/></svg>',
+  plantel:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>',
+  asado:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2s4 4 4 8a4 4 0 0 1-8 0c0-4 4-8 4-8z"/><path d="M5 22h14"/></svg>'
+};
+const TABS = [
+  {id:"sabado", label:"Sábado"},
+  {id:"amistosos", label:"Amistosos"},
+  {id:"cuota", label:"Cuota"},
+  {id:"plantel", label:"Plantel"},
+  {id:"asado", label:"Asado"}
+];
+let tab = "sabado";
+
+function renderNav(){
+  const nav = document.getElementById("nav");
+  nav.innerHTML = "";
+  TABS.forEach(t=>{
+    const b = document.createElement("button");
+    b.className = "nav-btn" + (t.id===tab ? " on":"");
+    b.innerHTML = ICONOS[t.id] + `<span>${t.label}</span>`;
+    b.onclick = ()=>{ tab = t.id; render(); window.scrollTo(0,0); };
+    nav.appendChild(b);
+  });
+}
+
+// ---------- RENDER ----------
+function render(){
+  if(!miPerfil) return;
+  renderNav();
+  document.getElementById("fecha-hoy").textContent =
+    new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
+
+  const chip = document.getElementById("perfil-chip");
+  chip.innerHTML = `<span class="nom">${miPerfil.nombre}</span>` +
+    (soyCapitan() ? `<span class="capitan">CAPITÁN</span>` : "");
+  const salir = document.createElement("button");
+  salir.className = "salir";
+  salir.textContent = "Cambiar";
+  salir.onclick = cerrarSesion;
+  chip.appendChild(salir);
+
+  const f = fechaCuotaVigente();
+  const cuotaOk = data.jugadores.filter(j=>f && estadoCuota(f,j.id).confirmado).length;
+  const sab = proximoSabado();
+  document.getElementById("st-plantel").textContent = data.jugadores.length;
+  document.getElementById("st-cuota").textContent = cuotaOk + "/" + data.jugadores.length;
+  document.getElementById("st-sabado").textContent = (data.sabados[sab]||[]).length;
+
+  const cont = document.getElementById("contenido");
+  cont.innerHTML = "";
+  if(tab==="sabado") cont.appendChild(vSabado());
+  if(tab==="amistosos") cont.appendChild(vAmistosos());
+  if(tab==="cuota") cont.appendChild(vCuota());
+  if(tab==="plantel") cont.appendChild(vPlantel());
+  if(tab==="asado") cont.appendChild(vAsado());
+}
+
+// ---------- SÁBADO ----------
+function vSabado(){
+  const w = document.createElement("div");
+  const sab = proximoSabado();
+  if(!data.sabados[sab]) data.sabados[sab] = [];
+  const conf = data.sabados[sab];
+  const c = configSabado(sab);
+  const yoVoy = conf.includes(miPerfil.id);
+  const yoPago = cuotaAlDia(miPerfil.id);
+  const cupo = c.modo === "interno" ? CUPO_INTERNO : null;
+  const lleno = cupo !== null && conf.length >= cupo && !yoVoy;
+
+  // ===== Bloque destacado: info + mi respuesta =====
+  const d = document.createElement("div");
+  d.className = "destacado";
+  d.innerHTML = `
+    <div class="titulo">Sábado ${fechaLinda(sab)}</div>
+    <div class="info-partido">
+      <div class="info-hora">${c.hora ? c.hora + " hs" : "Hora a confirmar"}</div>
+      <div class="info-linea">📍 ${textoLugar(c)}</div>
+      <div class="info-linea">⚽ ${textoModo(c)}${cupo ? ` · ${conf.length}/${cupo} lugares` : ""}</div>
+    </div>`;
+
+  const bVer = document.createElement("button");
+  bVer.className = "ghost mini full";
+  bVer.textContent = "Ver detalle del partido";
+  bVer.style.marginBottom = "12px";
+  bVer.onclick = ()=>{
+    abrirDetalle({
+      titulo: "PARTIDO DEL SÁBADO",
+      sub: new Date(sab+"T12:00:00").toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'}),
+      filas: [
+        {lbl:"Hora", val: c.hora ? c.hora + " hs" : "A confirmar"},
+        {lbl:"Lugar", val: textoLugar(c)},
+        {lbl:"Modalidad", val: textoModo(c)},
+        {lbl:"Anotados", val: conf.length + (cupo ? " de " + cupo : "")}
+      ],
+      anotados: conf.map(id=>nombreDe(id))
+    });
+  };
+  d.appendChild(bVer);
+
+  if(!yoPago){
+    const av = document.createElement("div");
+    av.className = "aviso";
+    av.textContent = "Pagá la cuota y esperá que el capitán la confirme para poder anotarte.";
+    d.appendChild(av);
+  } else if(lleno){
+    const av = document.createElement("div");
+    av.className = "aviso";
+    av.textContent = `Ya se llenaron los ${cupo} lugares.`;
+    d.appendChild(av);
+  }
+
+  const fila = document.createElement("div");
+  fila.className = "row";
+  const bSi = document.createElement("button");
+  bSi.textContent = "JUEGO";
+  bSi.className = "btn-si" + (yoVoy ? "" : " inactivo");
+  bSi.disabled = !yoPago || lleno;
+  bSi.onclick = async ()=>{ if(!conf.includes(miPerfil.id)) conf.push(miPerfil.id); await guardar(); render(); };
+  const bNo = document.createElement("button");
+  bNo.textContent = "NO JUEGO";
+  bNo.className = "btn-no" + (yoVoy ? " inactivo" : "");
+  bNo.disabled = !yoPago;
+  bNo.onclick = async ()=>{ data.sabados[sab] = conf.filter(i=>i!==miPerfil.id); await guardar(); render(); };
+  fila.appendChild(bSi); fila.appendChild(bNo);
+  d.appendChild(fila);
+  w.appendChild(d);
+
+  // ===== Configuración (solo capitanes) =====
+  if(soyCapitan()){
+    const cfg = document.createElement("div");
+    cfg.className = "card";
+    cfg.innerHTML = `<h2>Configurar el partido</h2><p class="hint">Lo que pongas acá lo ven todos.</p>`;
+
+    const rH = document.createElement("div"); rH.className="row";
+    const inH = document.createElement("input");
+    inH.type="time"; inH.value = c.hora || "";
+    rH.innerHTML = `<label style="flex:0 0 70px;align-self:center;font-size:13px;color:var(--tinta-suave);font-weight:700;">Hora</label>`;
+    rH.appendChild(inH);
+    cfg.appendChild(rH);
+
+    const rL = document.createElement("div"); rL.className="row";
+    const selL = document.createElement("select");
+    selL.innerHTML = LUGARES.map(l=>`<option value="${l}"${c.lugar===l?" selected":""}>${l}</option>`).join("");
+    rL.innerHTML = `<label style="flex:0 0 70px;align-self:center;font-size:13px;color:var(--tinta-suave);font-weight:700;">Lugar</label>`;
+    rL.appendChild(selL);
+    cfg.appendChild(rL);
+
+    const rLO = document.createElement("div"); rLO.className="row";
+    rLO.style.display = c.lugar==="Otro" ? "flex" : "none";
+    const inLO = document.createElement("input");
+    inLO.type="text"; inLO.placeholder="¿Dónde?"; inLO.value = c.lugarOtro || "";
+    rLO.appendChild(inLO);
+    cfg.appendChild(rLO);
+    selL.onchange = ()=>{ rLO.style.display = selL.value==="Otro" ? "flex" : "none"; };
+
+    const rM = document.createElement("div"); rM.className="row";
+    const selM = document.createElement("select");
+    selM.innerHTML = `
+      <option value="interno"${c.modo==="interno"?" selected":""}>Entre nosotros (${CUPO_INTERNO} lugares)</option>
+      <option value="contra"${c.modo==="contra"?" selected":""}>Contra otro equipo</option>`;
+    rM.innerHTML = `<label style="flex:0 0 70px;align-self:center;font-size:13px;color:var(--tinta-suave);font-weight:700;">Juego</label>`;
+    rM.appendChild(selM);
+    cfg.appendChild(rM);
+
+    const rR = document.createElement("div"); rR.className="row";
+    rR.style.display = c.modo==="contra" ? "flex" : "none";
+    const inR = document.createElement("input");
+    inR.type="text"; inR.placeholder="Nombre del rival"; inR.value = c.rival || "";
+    rR.appendChild(inR);
+    cfg.appendChild(rR);
+    selM.onchange = ()=>{ rR.style.display = selM.value==="contra" ? "flex" : "none"; };
+
+    const bG = document.createElement("button");
+    bG.className="full"; bG.textContent="Guardar datos del partido";
+    bG.onclick = async ()=>{
+      c.hora = inH.value;
+      c.lugar = selL.value;
+      c.lugarOtro = inLO.value.trim();
+      c.modo = selM.value;
+      c.rival = inR.value.trim();
+      await guardar(); render();
+    };
+    cfg.appendChild(bG);
+    w.appendChild(cfg);
+  }
+
+  // ===== Lista del plantel =====
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `<h2>Quién juega</h2><p class="hint">${conf.length} confirmados${cupo ? " de " + cupo + " lugares" : ""}</p>`;
+  const ul = document.createElement("ul");
+  ul.className = "lista";
+  if(!data.jugadores.length){ ul.innerHTML = `<li class="vacio">Sin jugadores.</li>`; }
+  const orden = data.jugadores.slice().sort((a,b)=>{
+    const av = conf.includes(a.id)?0:1, bv = conf.includes(b.id)?0:1;
+    return av-bv;
+  });
+  orden.forEach(j=>{
+    const va = conf.includes(j.id);
+    const ok = cuotaAlDia(j.id);
+    const bloqueado = !ok || (cupo !== null && !va && conf.length >= cupo);
+    const li = document.createElement("li");
+    li.className = "item";
+    li.innerHTML = `<div class="item-main">
+        <span class="item-nom">${j.nombre}${j.id===miPerfil.id?' <span class="yo">(vos)</span>':''}</span>
+        ${!ok ? '<span class="item-sub"><span class="pill no">debe cuota</span></span>' : ''}
+      </div>`;
+    const t = document.createElement("span");
+    t.className = "toggle" + (va ? "" : " no") + (bloqueado ? " off" : "");
+    t.textContent = va ? "JUEGA" : "NO";
+    if(!bloqueado){
+      t.onclick = async ()=>{
+        if(va) data.sabados[sab] = conf.filter(i=>i!==j.id);
+        else conf.push(j.id);
+        await guardar(); render();
+      };
+    }
+    li.appendChild(t);
+    ul.appendChild(li);
+  });
+  card.appendChild(ul);
+  w.appendChild(card);
+  return w;
+}
+
+// ---------- CUOTA ----------
+function vCuota(){
+  const w = document.createElement("div");
+  const card = document.createElement("div");
+  card.className = "card";
+  const fa = data.fechaCuotaActual;
+  card.innerHTML = `<h2>Cuota — ${etiquetaFecha(fa)}</h2>
+    <p class="hint">Marcá si pagaste. El capitán confirma.</p>`;
+
+  const row = document.createElement("div");
+  row.className = "row";
+  const sel = document.createElement("select");
+  data.fechasCuota.forEach(f=>{
+    const o = document.createElement("option");
+    o.value=f; o.textContent=etiquetaFecha(f);
+    if(f===fa) o.selected=true;
+    sel.appendChild(o);
+  });
+  sel.onchange = async ()=>{ data.fechaCuotaActual = sel.value; await guardar(); render(); };
+  row.appendChild(sel);
+  const bN = document.createElement("button");
+  bN.className="ghost mini"; bN.textContent="+ Nueva";
+  bN.style.flex="0 0 auto";
+  bN.onclick = async ()=>{
+    const n = uid();
+    data.fechasCuota.push(n);
+    data.fechaCuotaActual = n;
+    await guardar(); render();
+  };
+  row.appendChild(bN);
+  card.appendChild(row);
+
+  if(!data.jugadores.length){
+    card.innerHTML += `<p class="vacio">Sin jugadores.</p>`;
+    w.appendChild(card); return w;
+  }
+
+  const pend = data.jugadores.filter(j=>!estadoCuota(fa,j.id).confirmado);
+  const conf = data.jugadores.filter(j=>estadoCuota(fa,j.id).confirmado);
+
+  const ul = document.createElement("ul");
+  ul.className="lista";
+  if(!pend.length) ul.innerHTML = `<li class="vacio">Todos confirmados 🙌</li>`;
+  pend.forEach(j=>{
+    const e = estadoCuota(fa, j.id);
+    const yo = j.id===miPerfil.id;
+    const li = document.createElement("li");
+    li.className="item";
+    li.innerHTML = `<div class="item-main">
+        <span class="item-nom">${j.nombre}${yo?' <span class="yo">(vos)</span>':''}</span>
+      </div>`;
+    // Declaración: solo uno mismo
+    if(yo){
+      const t = document.createElement("span");
+      t.className = "toggle" + (e.declarado ? "" : " no");
+      t.textContent = e.declarado ? "PAGUÉ" : "NO PAGUÉ";
+      t.onclick = async ()=>{ e.declarado = !e.declarado; await guardar(); render(); };
+      li.appendChild(t);
+    } else {
+      const p = document.createElement("span");
+      p.className = "pill" + (e.declarado ? " oro" : "");
+      p.textContent = e.declarado ? "dice que pagó" : "no pagó";
+      li.appendChild(p);
+    }
+    // Confirmación: solo capitán
+    if(soyCapitan()){
+      const b = document.createElement("button");
+      b.className="mini"; b.textContent="OK";
+      b.onclick = async ()=>{ e.confirmado = true; await guardar(); render(); };
+      li.appendChild(b);
+    }
+    ul.appendChild(li);
+  });
+  card.appendChild(ul);
+
+  if(conf.length){
+    const sep = document.createElement("div");
+    sep.className="separador";
+    sep.textContent = `✅ Confirmados (${conf.length})`;
+    card.appendChild(sep);
+    const tags = document.createElement("div");
+    tags.className="tags";
+    conf.forEach(j=>{
+      const t = document.createElement("span");
+      t.className = "tag" + (soyCapitan() ? " quitar":"");
+      t.textContent = j.nombre;
+      if(soyCapitan()) t.onclick = async ()=>{
+        estadoCuota(fa,j.id).confirmado = false;
+        await guardar(); render();
+      };
+      tags.appendChild(t);
+    });
+    card.appendChild(tags);
+  }
+  w.appendChild(card);
+  return w;
+}
+
+// ---------- PLANTEL ----------
+function vPlantel(){
+  const w = document.createElement("div");
+  const card = document.createElement("div");
+  card.className="card";
+  card.innerHTML = `<h2>Plantel</h2><p class="hint">${data.jugadores.length} jugadores · el número es cuántos sábados jugó cada uno</p>`;
+
+  if(soyCapitan()){
+    const row = document.createElement("div");
+    row.className="row";
+    const inp = document.createElement("input");
+    inp.type="text"; inp.placeholder="Nombre del jugador"; inp.id="nuevo-jug";
+    row.appendChild(inp);
+    const b = document.createElement("button");
+    b.textContent="Agregar"; b.style.flex="0 0 auto";
+    b.onclick = async ()=>{
+      const n = inp.value.trim();
+      if(!n) return;
+      data.jugadores.push({id:uid(), nombre:n});
+      await guardar(); render();
+    };
+    row.appendChild(b);
+    card.appendChild(row);
+  } else {
+    const a = document.createElement("div");
+    a.className="aviso info";
+    a.textContent = "Solo los capitanes pueden agregar o quitar jugadores.";
+    card.appendChild(a);
+  }
+
+  const ul = document.createElement("ul");
+  ul.className="lista";
+  if(!data.jugadores.length) ul.innerHTML = `<li class="vacio">Sin jugadores.</li>`;
+  data.jugadores.slice().sort((a,b)=>partidosJugados(b.id)-partidosJugados(a.id)).forEach(j=>{
+    const yo = j.id===miPerfil.id;
+    const li = document.createElement("li");
+    li.className="item";
+    li.innerHTML = `<div class="item-main">
+        <span class="item-nom">${j.nombre}${yo?' <span class="yo">(vos)</span>':''}</span>
+        <span class="item-sub">
+          ${esAdmin(j.id)?'<span class="pill oro">capitán</span>':''}
+          <span class="pill">${partidosJugados(j.id)} partidos</span>
+        </span>
+      </div>`;
+    if(soyCapitan()){
+      const b = document.createElement("button");
+      b.className="danger mini";
+      b.textContent="Quitar";
+      b.onclick = async ()=>{
+        const msg = esAdmin(j.id)
+          ? `${j.nombre} es capitán. ¿Seguro que lo querés quitar del plantel?`
+          : `¿Quitar a ${j.nombre} del plantel?`;
+        if(!confirm(msg)) return;
+        data.jugadores = data.jugadores.filter(x=>x.id!==j.id);
+        data.admins = data.admins.filter(x=>x!==j.id);
+        await guardar(); render();
+      };
+      li.appendChild(b);
+    }
+    ul.appendChild(li);
+  });
+  card.appendChild(ul);
+  w.appendChild(card);
+  return w;
+}
+
+// ---------- AMISTOSOS ----------
+function vAmistosos(){
+  const w = document.createElement("div");
+  const card = document.createElement("div");
+  card.className="card";
+  card.innerHTML = `<h2>Nuevo amistoso</h2><p class="hint">Cualquiera puede crear uno. Sin límite de anotados.</p>`;
+  const r1 = document.createElement("div"); r1.className="row";
+  r1.innerHTML = `<input type="text" id="am-rival" placeholder="Rival" autocomplete="off">`;
+  card.appendChild(r1);
+  const r2 = document.createElement("div"); r2.className="row";
+  r2.innerHTML = `<input type="date" id="am-fecha"><input type="time" id="am-hora">`;
+  card.appendChild(r2);
+  const r3 = document.createElement("div"); r3.className="row";
+  r3.innerHTML = `<select id="am-lugar">${LUGARES.map(l=>`<option value="${l}">${l}</option>`).join("")}</select>`;
+  card.appendChild(r3);
+  const r4 = document.createElement("div"); r4.className="row"; r4.style.display="none";
+  r4.innerHTML = `<input type="text" id="am-lugar-otro" placeholder="¿Dónde se juega?" autocomplete="off">`;
+  card.appendChild(r4);
+  r3.querySelector("#am-lugar").onchange = (e)=>{
+    r4.style.display = e.target.value==="Otro" ? "flex" : "none";
+  };
+  const b = document.createElement("button");
+  b.className="full"; b.textContent="Crear amistoso";
+  b.onclick = async ()=>{
+    const rival = document.getElementById("am-rival").value.trim();
+    const fecha = document.getElementById("am-fecha").value;
+    const hora = document.getElementById("am-hora").value;
+    const lugarSel = document.getElementById("am-lugar").value;
+    const lugarOtro = document.getElementById("am-lugar-otro").value.trim();
+    const cancha = lugarSel==="Otro" ? (lugarOtro || "A confirmar") : lugarSel;
+    if(!rival || !fecha){ alert("Poné al menos rival y fecha."); return; }
+    data.amistosos.push({id:uid(), rival, fecha, hora, cancha, anotados:[]});
+    await guardar(); render();
+  };
+  card.appendChild(b);
+  w.appendChild(card);
+
+  const lc = document.createElement("div");
+  lc.className="card";
+  lc.innerHTML = `<h2>Próximos</h2>`;
+  const ord = data.amistosos.slice().sort((a,b)=>a.fecha.localeCompare(b.fecha));
+  if(!ord.length) lc.innerHTML += `<p class="vacio">No hay amistosos.</p>`;
+  ord.forEach(am=>{
+    const ev = document.createElement("div");
+    ev.className="evento";
+    ev.innerHTML = `<div class="evento-cab">
+        <div>
+          <div class="evento-tit">vs ${am.rival}</div>
+          <div class="evento-meta">${fechaLinda(am.fecha)}${am.hora?" · "+am.hora+" hs":""}${am.cancha?" · "+am.cancha:""}</div>
+        </div>
+        <span class="pill">${am.anotados.length} anotados</span>
+      </div>`;
+    const bDet = document.createElement("button");
+    bDet.className="ghost mini full";
+    bDet.textContent="Ver detalle";
+    bDet.style.marginBottom="8px";
+    bDet.onclick = ()=>{
+      abrirDetalle({
+        titulo: "AMISTOSO",
+        sub: "vs " + am.rival,
+        filas: [
+          {lbl:"Fecha", val: new Date(am.fecha+"T12:00:00").toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})},
+          {lbl:"Hora", val: am.hora ? am.hora + " hs" : "A confirmar"},
+          {lbl:"Lugar", val: am.cancha || "A confirmar"},
+          {lbl:"Anotados", val: String(am.anotados.length)}
+        ],
+        anotados: am.anotados.map(id=>nombreDe(id))
+      });
+    };
+    ev.appendChild(bDet);
+    const yoAnotado = am.anotados.includes(miPerfil.id);
+    const bA = document.createElement("button");
+    bA.className = "full" + (yoAnotado ? " danger" : "");
+    bA.textContent = yoAnotado ? "Bajarme" : "Anotarme";
+    bA.onclick = async ()=>{
+      if(yoAnotado) am.anotados = am.anotados.filter(i=>i!==miPerfil.id);
+      else am.anotados.push(miPerfil.id);
+      await guardar(); render();
+    };
+    ev.appendChild(bA);
+    if(am.anotados.length){
+      const tg = document.createElement("div");
+      tg.className="tags";
+      am.anotados.forEach(id=>{
+        const t = document.createElement("span");
+        t.className="tag" + (soyCapitan()?" quitar":"");
+        t.textContent = nombreDe(id);
+        if(soyCapitan()) t.onclick = async ()=>{
+          am.anotados = am.anotados.filter(x=>x!==id);
+          await guardar(); render();
+        };
+        tg.appendChild(t);
+      });
+      ev.appendChild(tg);
+    }
+    const bD = document.createElement("button");
+    bD.className="danger mini"; bD.textContent="Borrar amistoso";
+    bD.style.marginTop="10px";
+    bD.onclick = async ()=>{
+      if(!confirm(`¿Borrar el amistoso vs ${am.rival}?`)) return;
+      data.amistosos = data.amistosos.filter(x=>x.id!==am.id);
+      await guardar(); render();
+    };
+    ev.appendChild(bD);
+    lc.appendChild(ev);
+  });
+  w.appendChild(lc);
+  return w;
+}
+
+// ---------- ASADO ----------
+const APORTES = ["Carne","Chorizo","Bebida","Hielo","Carbón","Pan","Ensalada","Postre","Platos y cubiertos"];
+
+function vAsado(){
+  const w = document.createElement("div");
+  const card = document.createElement("div");
+  card.className="card";
+  card.innerHTML = `<h2>Nuevo asado</h2><p class="hint">Cargá la fecha y después cada uno dice qué lleva.</p>`;
+  const r1 = document.createElement("div"); r1.className="row";
+  r1.innerHTML = `<input type="date" id="as-fecha">`;
+  card.appendChild(r1);
+  const r2 = document.createElement("div"); r2.className="row";
+  r2.innerHTML = `<input type="text" id="as-lugar" placeholder="Lugar (casa de...)" autocomplete="off">`;
+  card.appendChild(r2);
+  const b = document.createElement("button");
+  b.className="full"; b.textContent="Crear asado";
+  b.onclick = async ()=>{
+    const fecha = document.getElementById("as-fecha").value;
+    const lugar = document.getElementById("as-lugar").value.trim();
+    if(!fecha){ alert("Elegí una fecha."); return; }
+    data.asados.push({id:uid(), fecha, lugar, aportes:[]});
+    await guardar(); render();
+  };
+  card.appendChild(b);
+  w.appendChild(card);
+
+  const lc = document.createElement("div");
+  lc.className="card";
+  lc.innerHTML = `<h2>Próximos asados</h2>`;
+  const ord = data.asados.slice().sort((a,b)=>a.fecha.localeCompare(b.fecha));
+  if(!ord.length) lc.innerHTML += `<p class="vacio">No hay asados.</p>`;
+  ord.forEach(as=>{
+    const ev = document.createElement("div");
+    ev.className="evento";
+    ev.innerHTML = `<div class="evento-cab">
+        <div>
+          <div class="evento-tit">🔥 ${fechaLinda(as.fecha)}</div>
+          <div class="evento-meta">${as.lugar || "Lugar a confirmar"}</div>
+        </div>
+        <span class="pill">${as.aportes.length} aportes</span>
+      </div>`;
+
+    // Yo llevo: selector simple + campo libre
+    const r = document.createElement("div");
+    r.className="row";
+    const sel = document.createElement("select");
+    sel.innerHTML = `<option value="">Yo llevo...</option>` +
+      APORTES.map(a=>`<option value="${a}">${a}</option>`).join("") +
+      `<option value="__otro">Otra cosa...</option>`;
+    r.appendChild(sel);
+    const bAdd = document.createElement("button");
+    bAdd.textContent="Sumar"; bAdd.style.flex="0 0 auto";
+    r.appendChild(bAdd);
+    ev.appendChild(r);
+
+    const rOtro = document.createElement("div");
+    rOtro.className="row"; rOtro.style.display="none";
+    const inOtro = document.createElement("input");
+    inOtro.type="text"; inOtro.placeholder="¿Qué llevás?"; inOtro.autocomplete="off";
+    rOtro.appendChild(inOtro);
+    ev.appendChild(rOtro);
+
+    sel.onchange = ()=>{ rOtro.style.display = sel.value==="__otro" ? "flex" : "none"; };
+    bAdd.onclick = async ()=>{
+      let trae = sel.value;
+      if(trae==="__otro") trae = inOtro.value.trim();
+      if(!trae){ alert("Elegí o escribí qué llevás."); return; }
+      as.aportes.push({jugadorId: miPerfil.id, trae});
+      await guardar(); render();
+    };
+
+    const ul = document.createElement("ul");
+    ul.className="lista";
+    if(!as.aportes.length) ul.innerHTML = `<li class="vacio">Nadie anotó nada todavía.</li>`;
+    as.aportes.forEach((ap,idx)=>{
+      const li = document.createElement("li");
+      li.className="item";
+      li.innerHTML = `<div class="item-main"><span class="item-nom">${nombreDe(ap.jugadorId)}</span></div>
+                      <span class="pill oro">${ap.trae}</span>`;
+      // Cada uno borra lo suyo; el capitán puede borrar cualquiera
+      if(ap.jugadorId===miPerfil.id || soyCapitan()){
+        const x = document.createElement("button");
+        x.className="ghost mini"; x.textContent="✕";
+        x.onclick = async ()=>{ as.aportes.splice(idx,1); await guardar(); render(); };
+        li.appendChild(x);
+      }
+      ul.appendChild(li);
+    });
+    ev.appendChild(ul);
+
+    const bD = document.createElement("button");
+    bD.className="danger mini"; bD.textContent="Borrar asado";
+    bD.style.marginTop="10px";
+    bD.onclick = async ()=>{
+      if(!confirm("¿Borrar este asado?")) return;
+      data.asados = data.asados.filter(x=>x.id!==as.id);
+      await guardar(); render();
+    };
+    ev.appendChild(bD);
+    lc.appendChild(ev);
+  });
+  w.appendChild(lc);
+  return w;
+}
+
+arrancar();
+</script>
+</body>
+</html>
