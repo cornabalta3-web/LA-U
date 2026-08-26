@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Urracas</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap');
+
+:root{
+  --azul: #2F6FE0;
+  --azul-dark: #163B8C;
+  --azul-soft: #6FA0F5;
+  --fondo: #0E1116;
+  --superficie: #171B22;
+  --superficie-alt: #222833;
+  --tinta: #E8ECF2;
+  --ok: #4CAF6B;
+  --pend: #E0564F;
+  --linea: rgba(232,236,242,0.14);
+}
+
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background: var(--fondo);
+  background-image: radial-gradient(circle at 1px 1px, rgba(232,236,242,0.05) 1px, transparent 0);
+  background-size: 14px 14px;
+  color: var(--tinta);
+  font-family:'Work Sans', sans-serif;
+  min-height:100vh;
+}
+
+.app{ max-width: 760px; margin: 0 auto; padding: 18px 16px 60px; }
+
+/* ---- Header / marcador ---- */
+.marcador{
+  background: linear-gradient(160deg, var(--azul-dark), #0B1220 75%);
+  border-radius: 14px;
+  padding: 20px 20px 16px;
+  color: #fff;
+  position: relative;
+  overflow:hidden;
+  border: 3px solid var(--superficie-alt);
+}
+.marcador-top{ display:flex; align-items:center; gap:12px; margin-bottom: 4px; }
+.marcador h1{
+  font-family:'Bebas Neue', sans-serif;
+  font-size: 32px;
+  letter-spacing: 2px;
+  margin: 0;
+}
+.marcador .sub{ font-size: 13px; opacity: 0.85; margin-bottom: 10px; }
+.perfil-line{
+  display:flex; align-items:center; gap:8px; margin-bottom: 14px; font-size: 13px;
+}
+.badge-capitan{
+  font-family:'Bebas Neue', sans-serif;
+  font-size: 11px; letter-spacing: 0.6px;
+  background: #FFD34D; color: #402A00;
+  padding: 2px 8px; border-radius: 999px;
+}
+.stats{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.stat{
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 10px; padding: 10px 8px; text-align:center;
+}
+.stat .num{
+  font-family:'JetBrains Mono', monospace; font-size: 22px; font-weight:700;
+  color: #FFD34D; display:block; line-height:1.1;
+}
+.stat .lbl{ font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.6px; opacity: 0.9; }
+
+/* ---- Tabs ---- */
+.tabs{ display:flex; gap: 6px; margin: 16px 0 14px; overflow-x:auto; padding-bottom: 2px; }
+.tab{
+  flex: 0 0 auto; font-family:'Bebas Neue', sans-serif; letter-spacing: 0.8px; font-size: 15px;
+  padding: 8px 14px; border-radius: 8px 8px 0 0; background: var(--superficie-alt);
+  border: 2px solid var(--linea); border-bottom: none; cursor:pointer; color: var(--tinta); opacity: 0.6;
+}
+.tab.active{ background: var(--azul); color: #fff; opacity: 1; border-color: var(--azul-dark); }
+
+.card{
+  background: var(--superficie); border: 2px solid var(--linea); border-radius: 10px; padding: 16px; margin-bottom: 14px;
+  box-shadow: 3px 3px 0 rgba(36,26,51,0.06);
+}
+.card h2{
+  font-family:'Bebas Neue', sans-serif; letter-spacing: 0.6px; font-size: 21px;
+  margin: 0 0 10px; border-bottom: 2px dashed var(--linea); padding-bottom: 8px; color: var(--azul-soft);
+}
+.card p.hint{ font-size: 12.5px; opacity: 0.65; margin: -4px 0 12px; }
+
+.row{ display:flex; gap:8px; margin-bottom: 8px; flex-wrap: wrap; }
+.row > *{ flex: 1 1 140px; }
+input[type=text], input[type=date], select{
+  font-family:'Work Sans', sans-serif; font-size: 14px; padding: 9px 10px; border-radius: 7px;
+  border: 1.5px solid var(--linea); background: var(--superficie-alt); color: var(--tinta); width:100%;
+}
+button{
+  font-family:'Work Sans', sans-serif; font-weight:600; font-size: 13.5px; padding: 10px 14px;
+  border-radius: 7px; border: none; cursor:pointer; background: var(--azul); color:#fff; white-space:nowrap;
+  min-height: 40px;
+}
+button.secondary{ background: var(--superficie-alt); color: var(--tinta); border:1.5px solid var(--linea); }
+button.danger{ background: var(--pend); color:#fff; }
+button:disabled{ opacity:0.45; cursor:default; }
+
+.jugador-list{ list-style:none; margin:0; padding:0; }
+.jugador-item{ display:flex; align-items:center; justify-content:space-between; padding: 9px 4px; border-bottom: 1px solid var(--linea); gap: 10px; }
+.jugador-item:last-child{ border-bottom:none; }
+.jugador-nombre{ font-weight:600; font-size:14.5px; }
+.jugador-nombre .yo{ font-size: 11px; color: var(--azul); font-weight:700; margin-left:4px; }
+
+.sello{
+  font-family:'Bebas Neue', sans-serif; font-size: 12px; letter-spacing: 1px; padding: 8px 12px;
+  border-radius: 999px; border: 2px solid var(--ok); color: var(--ok); cursor:pointer; user-select:none;
+  display:inline-flex; align-items:center; min-height: 32px;
+}
+.sello.pendiente{ border-color: var(--pend); color: var(--pend); }
+.sello.deshabilitado{ opacity:0.4; cursor: default; transform:none; }
+
+.badge{
+  font-family:'JetBrains Mono', monospace; font-size: 11.5px; background: var(--superficie-alt);
+  border-radius: 999px; padding: 3px 9px; color: var(--tinta);
+}
+.badge.violeta{ background: var(--azul); color:#fff; }
+
+.evento{ border: 1.5px dashed var(--linea); border-radius: 9px; padding: 12px; margin-bottom: 10px; background: rgba(111,160,245,0.05); }
+.evento-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:8px; }
+.evento-title{ font-weight:700; font-size: 15px; }
+.evento-meta{ font-size: 12px; opacity:0.7; }
+
+.tag{ display:inline-block; font-size:12px; background: var(--azul-soft); color: #fff; border-radius: 6px; padding: 2px 8px; margin: 2px 4px 2px 0; }
+.tag.rem{ cursor:pointer; }
+.tag.rem::after{ content: " ✕"; opacity:0.7; }
+
+.empty{ font-size:13.5px; opacity:0.6; padding: 8px 2px; }
+.footer-note{ text-align:center; font-size: 11.5px; opacity: 0.55; margin-top: 22px; }
+.aviso{ font-size: 12.5px; background: var(--superficie-alt); border-left: 3px solid var(--azul); padding: 8px 10px; border-radius: 6px; margin-bottom: 10px; }
+
+.mi-respuesta{
+  background: var(--superficie-alt);
+  border: 2px solid var(--azul);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+.mi-respuesta-label{
+  font-family:'Bebas Neue', sans-serif;
+  font-size: 16px;
+  letter-spacing: 0.4px;
+  margin-bottom: 8px;
+  color: var(--azul-soft);
+}
+.mi-respuesta button{ font-size: 15px; padding: 11px 14px; }
+
+/* ---- Modal de registro ---- */
+.modal-overlay{
+  position: fixed; inset:0; background: rgba(36,26,51,0.6); display:flex; align-items:center; justify-content:center;
+  padding: 20px; z-index: 50;
+}
+.modal{
+  background: var(--superficie); border-radius: 14px; padding: 22px; max-width: 380px; width:100%;
+  border: 3px solid var(--azul-dark); max-height: 88vh; overflow-y: auto;
+}
+.modal h2{ font-family:'Bebas Neue', sans-serif; font-size: 24px; color: var(--azul-soft); margin:0 0 4px; letter-spacing: 0.6px; }
+.modal p.sub{ font-size: 13px; opacity: 0.7; margin: 0 0 16px; }
+.modal label{ font-size: 13px; font-weight:600; display:block; margin-bottom:4px; }
+.modal .campo{ margin-bottom: 12px; }
+.modal .check-row{ display:flex; align-items:center; gap:8px; margin-bottom: 10px; }
+.modal .error{ color: var(--pend); font-size: 12.5px; margin-bottom: 8px; display:none; }
+
+@media (max-width:480px){
+  .app{ padding: 12px 10px 50px; }
+  .marcador{ padding: 16px 14px 14px; }
+  .marcador h1{ font-size: 24px; letter-spacing: 1.2px; }
+  .stat .num{ font-size: 17px; }
+  .stat .lbl{ font-size: 9.5px; }
+  .card{ padding: 13px; }
+  .card h2{ font-size: 18px; }
+  .tab{ font-size: 13px; padding: 7px 10px; }
+  .jugador-item{ flex-wrap: wrap; }
+  .jugador-nombre{ flex: 1 1 100%; }
+  button{ font-size: 13px; }
+}
+@media (max-width:360px){
+  .stats{ grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .stat{ padding: 8px 4px; }
+  .marcador-top svg{ width: 42px; height: 42px; }
+  .marcador h1{ font-size: 21px; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="marcador">
+    <div class="marcador-top">
+      <svg width="52" height="52" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
+        <path d="M50 4 L90 22 V50 C90 74 72 90 50 96 C28 90 10 74 10 50 V22 Z" fill="#0B0E14" stroke="var(--azul-soft)" stroke-width="3"/>
+        <g transform="translate(50,54)">
+          <path d="M-30 4 C-22 -10 -6 -18 8 -15 C18 -13 25 -6 29 3 L38 1 L28 10 C21 20 7 25 -6 22 C-18 20 -27 13 -30 4 Z" fill="#fff"/>
+          <path d="M-30 4 C-22 -10 -10 -16 -2 -16 C-9 -6 -16 3 -25 8 C-28 9 -29 7 -30 4 Z" fill="#111"/>
+          <path d="M8 -15 C12 -9 12 -3 8 3" fill="none" stroke="#111" stroke-width="2"/>
+          <circle cx="16" cy="-8" r="2.4" fill="#111"/>
+          <path d="M27 -5 L38 1 L27 5 Z" fill="#111"/>
+        </g>
+      </svg>
+      <div>
+        <h1>URRACAS</h1>
+        <div class="sub" id="fecha-hoy"></div>
+      </div>
+    </div>
+    <div class="perfil-line" id="perfil-line"></div>
+    <div class="stats">
+      <div class="stat"><span class="num" id="stat-jugadores">0</span><span class="lbl">Plantel</span></div>
+      <div class="stat"><span class="num" id="stat-cuota">0</span><span class="lbl">Pagaron / Total</span></div>
+      <div class="stat"><span class="num" id="stat-confirmados">0</span><span class="lbl">Van al sábado</span></div>
+    </div>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+  <div id="tab-content"></div>
+
+  <div class="footer-note">Datos compartidos: cualquiera con este link ve la info del equipo. Solo los capitanes agregan o quitan jugadores.</div>
+</div>
+
+<div id="modal-root"></div>
+
+<script>
+// ======= CONFIGURACIÓN DE FIREBASE =======
+// Reemplazá esto con los datos de TU proyecto de Firebase (ver README.md).
+const firebaseConfig = {
+  apiKey: "AIzaSyA1m-4f1tg0uffUfPKSQBB5kyFoGGSNo3w",
+  authDomain: "urracas-fe915.firebaseapp.com",
+  databaseURL: "https://urracas-fe915-default-rtdb.firebaseio.com",
+  projectId: "urracas-fe915"
+};
+firebase.initializeApp(firebaseConfig);
+const equipoRef = firebase.database().ref("equipo-la-u");
+// ==========================================
+
+const PERSONAL_KEY = "mi-perfil-la-u";
+const CODIGO_CAPITAN = "LAU-CAPITAN"; // se lo pasás a quienes quieras que sean capitanes
+
+let data = {
+  jugadores: [],     // {id, nombre}
+  admins: [],        // hasta 2 ids de jugadores (capitanes)
+  fechaCuotaActual: null, // fecha que se está viendo/editando en la pestaña Cuota
+  fechasCuota: [],   // ["2026-08-24", "2026-09-01", ...] fechas creadas a mano
+  cuota: {},         // { "2026-08-24": { jugadorId: {declarado, confirmado} } }
+  sabados: {},       // { "2026-08-29": [jugadorId,...] }
+  amistosos: [],     // {id, rival, fecha, cancha, anotados:[jugadorId]}
+  asados: []         // {id, fecha, lugar, aportes:[{jugadorId, trae}]}
+};
+let miPerfil = null; // {id, nombre}
+
+function uid(){ return Math.random().toString(36).slice(2,9); }
+
+function lunesDe(d){
+  const dt = new Date(d);
+  const day = dt.getDay();
+  const diff = day===0 ? -6 : 1-day;
+  dt.setDate(dt.getDate()+diff);
+  return dt.toISOString().slice(0,10);
+}
+function lunesOffset(nSemanas){
+  const d = new Date();
+  d.setDate(d.getDate() + nSemanas*7);
+  return lunesDe(d);
+}
+function fechaCuotaVigente(){
+  if(data.fechasCuota && data.fechasCuota.length){
+    return data.fechasCuota[data.fechasCuota.length-1];
+  }
+  return null;
+}
+function etiquetaFecha(id){
+  const idx = data.fechasCuota.indexOf(id);
+  return idx >= 0 ? "Fecha " + (idx+1) : "Fecha ?";
+}
+function proximoSabado(){
+  const d = new Date();
+  const diff = (6 - d.getDay() + 7) % 7 || 7;
+  const s = new Date(d);
+  s.setDate(d.getDate() + (d.getDay()===6 ? 0 : diff));
+  return s.toISOString().slice(0,10);
+}
+function nombreDe(id){
+  const j = data.jugadores.find(x=>x.id===id);
+  return j ? j.nombre : "(?)";
+}
+function esAdmin(id){ return data.admins.includes(id); }
+function estadoCuota(fecha, playerId){
+  if(!data.cuota[fecha]) data.cuota[fecha] = {};
+  const actual = data.cuota[fecha][playerId];
+  if(!actual || typeof actual !== "object"){
+    data.cuota[fecha][playerId] = {declarado:false, confirmado:false};
+  }
+  return data.cuota[fecha][playerId];
+}
+function partidosJugados(playerId){
+  return Object.values(data.sabados || {}).filter(arr => Array.isArray(arr) && arr.includes(playerId)).length;
+}
+
+// ---------- CARGA / GUARDADO ----------
+// El nombre de cada uno se guarda en ESTE navegador/celu (localStorage).
+// Los datos del equipo (plantel, cuota, sábados, amistosos, asado) viven en
+// Firebase y se sincronizan solos en todos los celus, en tiempo real.
+function cargarPersonal(){
+  try{
+    const raw = localStorage.getItem(PERSONAL_KEY);
+    if(raw) miPerfil = JSON.parse(raw);
+  }catch(e){ miPerfil = null; }
+}
+function guardarPersonal(){
+  try{ localStorage.setItem(PERSONAL_KEY, JSON.stringify(miPerfil)); }
+  catch(e){ console.error("No se pudo guardar el perfil en este navegador", e); }
+}
+async function guardarShared(){
+  try{ await equipoRef.set(data); }
+  catch(e){ console.error("No se pudo guardar en Firebase", e); }
+}
+function sanitizarData(){
+  // Firebase borra los arrays/objetos vacíos al guardar (los "de-serializa" como
+  // ausentes). Esto repone esos campos para que el resto del código no explote
+  // al hacer .length o .push sobre algo que ya no está.
+  if(!Array.isArray(data.jugadores)) data.jugadores = [];
+  if(!Array.isArray(data.admins)) data.admins = [];
+  if(!Array.isArray(data.fechasCuota)) data.fechasCuota = [];
+  if(!data.cuota || typeof data.cuota !== "object") data.cuota = {};
+  if(!data.sabados || typeof data.sabados !== "object") data.sabados = {};
+  if(!Array.isArray(data.amistosos)) data.amistosos = [];
+  data.amistosos.forEach(am=>{ if(!Array.isArray(am.anotados)) am.anotados = []; });
+  if(!Array.isArray(data.asados)) data.asados = [];
+  data.asados.forEach(asd=>{ if(!Array.isArray(asd.aportes)) asd.aportes = []; });
+}
+function cargarTodo(){
+  cargarPersonal();
+  equipoRef.on("value", (snapshot)=>{
+    const val = snapshot.val();
+    if(val) data = Object.assign(data, val);
+    sanitizarData();
+    if(!data.fechaCuotaActual){
+      if(!data.fechasCuota.length){
+        data.fechasCuota.push(uid());
+      }
+      data.fechaCuotaActual = fechaCuotaVigente();
+    }
+
+    if(miPerfil && !data.jugadores.find(j=>j.id===miPerfil.id)){
+      // por si se borró del plantel pero la persona sigue teniendo su perfil en este celu
+      data.jugadores.push({id: miPerfil.id, nombre: miPerfil.nombre});
+      guardarShared();
+    }
+
+    if(!miPerfil){
+      mostrarModalRegistro();
+    } else {
+      document.getElementById("modal-root").innerHTML = "";
+      render();
+    }
+  }, (err)=>{
+    console.error("Error leyendo Firebase (revisá firebaseConfig y las reglas de la base):", err);
+  });
+}
+
+// ---------- MODAL DE REGISTRO ----------
+function mostrarModalRegistro(){
+  const root = document.getElementById("modal-root");
+  const jugadoresExistentes = data.jugadores || [];
+  root.innerHTML = `
+    <div class="modal-overlay">
+      <div class="modal">
+        <h2>¡Bienvenido a Urracas!</h2>
+        <p class="sub">¿Ya te habías anotado desde otro celu o compu?</p>
+        <div class="row" style="margin-bottom:14px;">
+          <button type="button" id="modo-nuevo">Soy nuevo</button>
+          <button type="button" id="modo-existente" class="secondary">Ya tengo cuenta</button>
+        </div>
+
+        <div id="bloque-nuevo">
+          <div class="error" id="modal-error"></div>
+          <div class="campo">
+            <label>Tu nombre</label>
+            <input type="text" id="reg-nombre" placeholder="Ej. Fede">
+          </div>
+          <div class="check-row">
+            <input type="checkbox" id="reg-capitan">
+            <label style="margin:0;">Soy capitán</label>
+          </div>
+          <div class="campo" id="reg-codigo-wrap" style="display:none;">
+            <label>Código de capitán</label>
+            <input type="text" id="reg-codigo" placeholder="Te lo pasó el organizador">
+          </div>
+          <button id="reg-btn" style="width:100%;">Entrar</button>
+        </div>
+
+        <div id="bloque-existente" style="display:none;">
+          <div class="error" id="modal-error-2"></div>
+          <div class="campo">
+            <label>Elegí tu nombre en la lista</label>
+            <select id="reg-existente-select">
+              <option value="">Seleccioná...</option>
+              ${jugadoresExistentes.map(j=>`<option value="${j.id}">${j.nombre}</option>`).join("")}
+            </select>
+          </div>
+          <button id="reg-existente-btn" style="width:100%;">Entrar con este nombre</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("modo-nuevo").onclick = ()=>{
+    document.getElementById("bloque-nuevo").style.display = "block";
+    document.getElementById("bloque-existente").style.display = "none";
+    document.getElementById("modo-nuevo").className = "";
+    document.getElementById("modo-existente").className = "secondary";
+  };
+  document.getElementById("modo-existente").onclick = ()=>{
+    document.getElementById("bloque-nuevo").style.display = "none";
+    document.getElementById("bloque-existente").style.display = "block";
+    document.getElementById("modo-existente").className = "";
+    document.getElementById("modo-nuevo").className = "secondary";
+  };
+
+  document.getElementById("reg-capitan").onchange = (e)=>{
+    document.getElementById("reg-codigo-wrap").style.display = e.target.checked ? "block" : "none";
+  };
+  document.getElementById("reg-btn").onclick = async ()=>{
+    const nombre = document.getElementById("reg-nombre").value.trim();
+    const quiereCapitan = document.getElementById("reg-capitan").checked;
+    const codigo = document.getElementById("reg-codigo").value.trim();
+    const errBox = document.getElementById("modal-error");
+    errBox.style.display = "none";
+
+    if(!nombre){
+      errBox.textContent = "Poné tu nombre para continuar.";
+      errBox.style.display = "block";
+      return;
+    }
+    if(quiereCapitan){
+      if(codigo !== CODIGO_CAPITAN){
+        errBox.textContent = "Código de capitán incorrecto.";
+        errBox.style.display = "block";
+        return;
+      }
+    }
+
+    const id = uid();
+    miPerfil = {id, nombre};
+    data.jugadores.push({id, nombre});
+    if(quiereCapitan) data.admins.push(id);
+
+    await guardarPersonal();
+    await guardarShared();
+    document.getElementById("modal-root").innerHTML = "";
+    render();
+  };
+
+  document.getElementById("reg-existente-btn").onclick = async ()=>{
+    const sel = document.getElementById("reg-existente-select");
+    const errBox2 = document.getElementById("modal-error-2");
+    errBox2.style.display = "none";
+    if(!sel.value){
+      errBox2.textContent = "Elegí tu nombre de la lista.";
+      errBox2.style.display = "block";
+      return;
+    }
+    const j = data.jugadores.find(x=>x.id===sel.value);
+    if(!j) return;
+    miPerfil = {id: j.id, nombre: j.nombre};
+    await guardarPersonal();
+    document.getElementById("modal-root").innerHTML = "";
+    render();
+  };
+}
+
+// ---------- TABS ----------
+const TABS = [
+  {id:"sabado", label:"SÁBADO"},
+  {id:"amistosos", label:"AMISTOSOS"},
+  {id:"resumen", label:"RESUMEN"},
+  {id:"cuota", label:"CUOTA"},
+  {id:"plantel", label:"PLANTEL"},
+  {id:"asado", label:"ASADO"}
+];
+let tabActual = "sabado";
+
+function renderTabs(){
+  const cont = document.getElementById("tabs");
+  cont.innerHTML = "";
+  TABS.forEach(t=>{
+    const b = document.createElement("div");
+    b.className = "tab" + (t.id===tabActual ? " active" : "");
+    b.textContent = t.label;
+    b.onclick = ()=>{ tabActual = t.id; render(); };
+    cont.appendChild(b);
+  });
+}
+
+// ---------- RENDER PRINCIPAL ----------
+function render(){
+  if(!miPerfil) return;
+  renderTabs();
+  document.getElementById("fecha-hoy").textContent =
+    new Date().toLocaleDateString('es-AR', {weekday:'long', day:'numeric', month:'long'});
+
+  const linea = document.getElementById("perfil-line");
+  linea.innerHTML = `Hola, <b>${miPerfil.nombre}</b>` + (esAdmin(miPerfil.id) ? ` <span class="badge-capitan">CAPITÁN</span>` : "");
+
+  const cuotaHoy = data.cuota[data.fechaCuotaActual] || {};
+  const pagaron = data.jugadores.filter(j=>cuotaHoy[j.id] && cuotaHoy[j.id].confirmado).length;
+  document.getElementById("stat-jugadores").textContent = data.jugadores.length;
+  document.getElementById("stat-cuota").textContent = pagaron + "/" + data.jugadores.length;
+  const sab = proximoSabado();
+  document.getElementById("stat-confirmados").textContent = (data.sabados[sab]||[]).length;
+
+  const cont = document.getElementById("tab-content");
+  cont.innerHTML = "";
+  if(tabActual==="resumen") cont.appendChild(vistaResumen());
+  if(tabActual==="plantel") cont.appendChild(vistaPlantel());
+  if(tabActual==="cuota") cont.appendChild(vistaCuota());
+  if(tabActual==="sabado") cont.appendChild(vistaSabado());
+  if(tabActual==="amistosos") cont.appendChild(vistaAmistosos());
+  if(tabActual==="asado") cont.appendChild(vistaAsado());
+}
+
+// ---------- RESUMEN ----------
+function vistaResumen(){
+  const wrap = document.createElement("div");
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `<h2>¿Qué está pasando?</h2>`;
+  const sab = proximoSabado();
+  const confirmados = data.sabados[sab]||[];
+  const cuotaHoy = data.cuota[data.fechaCuotaActual] || {};
+  const sinConfirmar = data.jugadores.filter(j=>!(cuotaHoy[j.id] && cuotaHoy[j.id].confirmado));
+  const proxAmistoso = data.amistosos.slice().sort((a,b)=>a.fecha.localeCompare(b.fecha))[0];
+  const proxAsado = data.asados.slice().sort((a,b)=>a.fecha.localeCompare(b.fecha))[0];
+
+  let html = `<p>📅 <b>Sábado ${sab}</b>: ${confirmados.length} confirmados.</p>`;
+  if(sinConfirmar.length){
+    html += `<p>💸 Sin confirmar la cuota de ${etiquetaFecha(data.fechaCuotaActual)}: ${sinConfirmar.map(j=>j.nombre).join(", ")}</p>`;
+  } else if(data.jugadores.length){
+    html += `<p>💸 Cuota de ${etiquetaFecha(data.fechaCuotaActual)}: todos confirmados 🙌</p>`;
+  }
+  if(proxAmistoso){
+    html += `<p>🤝 Próximo amistoso: <b>vs ${proxAmistoso.rival}</b> el ${proxAmistoso.fecha} — ${proxAmistoso.anotados.length} anotados.</p>`;
+  }
+  if(proxAsado){
+    html += `<p>🔥 Próximo asado: <b>${proxAsado.fecha}</b> en ${proxAsado.lugar||"a confirmar"} — ${proxAsado.aportes.length} aportes cargados.</p>`;
+  }
+  card.innerHTML += html;
+  wrap.appendChild(card);
+  return wrap;
+}
+
+// ---------- PLANTEL ----------
+function vistaPlantel(){
+  const wrap = document.createElement("div");
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `<h2>Plantel</h2><p class="hint">Cada uno se suma solo al registrarse. Agregar o quitar manualmente es cosa de los capitanes.</p>`;
+
+  if(esAdmin(miPerfil.id)){
+    const row = document.createElement("div");
+    row.className = "row";
+    row.innerHTML = `<input type="text" id="nuevo-nombre" placeholder="Nombre del jugador">`;
+    const btn = document.createElement("button");
+    btn.textContent = "Agregar";
+    btn.onclick = async ()=>{
+      const input = document.getElementById("nuevo-nombre");
+      const nombre = input.value.trim();
+      if(!nombre) return;
+      data.jugadores.push({id: uid(), nombre});
+      await guardarShared();
+      render();
+    };
+    row.appendChild(btn);
+    card.appendChild(row);
+  } else {
+    card.innerHTML += `<div class="aviso">Solo los capitanes pueden agregar o quitar jugadores acá.</div>`;
+  }
+
+  const list = document.createElement("ul");
+  list.className = "jugador-list";
+  if(!data.jugadores.length){
+    list.innerHTML = `<li class="empty">Sin jugadores todavía.</li>`;
+  }
+  data.jugadores.forEach(j=>{
+    const li = document.createElement("li");
+    li.className = "jugador-item";
+    const soyYo = j.id === miPerfil.id;
+    li.innerHTML = `<span class="jugador-nombre">${j.nombre}${soyYo ? '<span class="yo">(vos)</span>' : ''}${esAdmin(j.id) ? ' <span class="badge-capitan">CAPITÁN</span>' : ''} <span class="badge">${partidosJugados(j.id)} partidos</span></span>`;
+    if(esAdmin(miPerfil.id) && !esAdmin(j.id)){
+      const del = document.createElement("button");
+      del.className = "danger";
+      del.textContent = "Quitar";
+      del.onclick = async ()=>{
+        data.jugadores = data.jugadores.filter(x=>x.id!==j.id);
+        data.admins = data.admins.filter(x=>x!==j.id);
+        await guardarShared();
+        render();
+      };
+      li.appendChild(del);
+    } else if(esAdmin(miPerfil.id) && esAdmin(j.id) && !soyYo){
+      const nota = document.createElement("span");
+      nota.className = "badge";
+      nota.textContent = "🔒 protegido";
+      li.appendChild(nota);
+    }
+    list.appendChild(li);
+  });
+  card.appendChild(list);
+  wrap.appendChild(card);
+  return wrap;
+}
+
+// ---------- CUOTA (por fecha) ----------
+function vistaCuota(){
+  const wrap = document.createElement("div");
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `<h2>Cuota — ${etiquetaFecha(data.fechaCuotaActual)}</h2><p class="hint">Cada uno marca si pagó por sí mismo. Solo el capitán confirma si es verdad.</p>`;
+
+  // Selector de fecha + agregar nueva
+  const row = document.createElement("div");
+  row.className = "row";
+  row.innerHTML = `<select id="fecha-selector"></select>`;
+  card.appendChild(row);
+  const sel = row.querySelector("#fecha-selector");
+  data.fechasCuota.forEach(f=>{
+    const opt = document.createElement("option");
+    opt.value = f; opt.textContent = etiquetaFecha(f);
+    if(f===data.fechaCuotaActual) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  sel.onchange = async ()=>{ data.fechaCuotaActual = sel.value; await guardarShared(); render(); };
+
+  const btnNueva = document.createElement("button");
+  btnNueva.textContent = "+ Agregar fecha nueva";
+  btnNueva.className = "secondary";
+  btnNueva.style.marginBottom = "12px";
+  btnNueva.onclick = async ()=>{
+    const nuevaId = uid();
+    data.fechasCuota.push(nuevaId);
+    data.fechaCuotaActual = nuevaId;
+    await guardarShared();
+    render();
+  };
+  card.appendChild(btnNueva);
+
+  if(!data.jugadores.length){
+    card.innerHTML += `<p class="empty">Todavía no hay jugadores anotados.</p>`;
+  } else {
+    const pendientes = data.jugadores.filter(j=>!estadoCuota(data.fechaCuotaActual, j.id).confirmado);
+    const confirmados = data.jugadores.filter(j=>estadoCuota(data.fechaCuotaActual, j.id).confirmado);
+
+    const list = document.createElement("ul");
+    list.className = "jugador-list";
+    if(!pendientes.length){
+      list.innerHTML = `<li class="empty">Nadie pendiente — todos confirmados 🙌</li>`;
+    }
+    pendientes.forEach(j=>{
+      const estado = estadoCuota(data.fechaCuotaActual, j.id);
+      const soyYo = j.id === miPerfil.id;
+      const li = document.createElement("li");
+      li.className = "jugador-item";
+      li.innerHTML = `<span class="jugador-nombre">${j.nombre}${soyYo ? '<span class="yo">(vos)</span>' : ''}</span>`;
+
+      // Declaración: solo la puede tocar el propio jugador
+      if(soyYo){
+        const selloDeclarado = document.createElement("span");
+        selloDeclarado.className = "sello" + (estado.declarado ? "" : " pendiente");
+        selloDeclarado.textContent = estado.declarado ? "DICE QUE PAGÓ" : "NO PAGÓ";
+        selloDeclarado.onclick = async ()=>{
+          estado.declarado = !estado.declarado;
+          await guardarShared();
+          render();
+        };
+        li.appendChild(selloDeclarado);
+      } else {
+        const badgeDecl = document.createElement("span");
+        badgeDecl.className = "badge" + (estado.declarado ? " violeta" : "");
+        badgeDecl.textContent = estado.declarado ? "Dice que pagó" : "No pagó";
+        li.appendChild(badgeDecl);
+      }
+
+      // Confirmación: solo el/la capitán
+      if(esAdmin(miPerfil.id)){
+        const selloConfirmado = document.createElement("span");
+        selloConfirmado.className = "sello pendiente";
+        selloConfirmado.textContent = "CONFIRMAR";
+        selloConfirmado.onclick = async ()=>{
+          estado.confirmado = true;
+          await guardarShared();
+          render();
+        };
+        li.appendChild(selloConfirmado);
+      } else {
+        const badge = document.createElement("span");
+        badge.className = "badge";
+        badge.textContent = "⏳ Sin confirmar";
+        li.appendChild(badge);
+      }
+      list.appendChild(li);
+    });
+    card.appendChild(list);
+
+    if(confirmados.length){
+      const resumenConf = document.createElement("div");
+      resumenConf.className = "aviso";
+      resumenConf.innerHTML = `<b>✅ Ya confirmados:</b> `;
+      confirmados.forEach(j=>{
+        const tag = document.createElement("span");
+        tag.className = "tag" + (esAdmin(miPerfil.id) ? " rem" : "");
+        tag.textContent = j.nombre;
+        if(esAdmin(miPerfil.id)){
+          tag.onclick = async ()=>{
+            estadoCuota(data.fechaCuotaActual, j.id).confirmado = false;
+            await guardarShared();
+            render();
+          };
+        }
+        resumenConf.appendChild(tag);
+      });
+      card.appendChild(resumenConf);
+    }
+  }
+  wrap.appendChild(card);
+  return wrap;
+}
+
+// ---------- SÁBADO ----------
+function vistaSabado(){
+  const wrap = document.createElement("div");
+  const card = document.createElement("div");
+  const sab = proximoSabado();
+  card.className = "card";
+  card.innerHTML = `<h2>Partido del sábado ${sab}</h2><p class="hint">Marcá quién juega este fin de semana.</p>`;
+
+  if(!data.jugadores.length){
+    card.innerHTML += `<p class="empty">Todavía no hay jugadores anotados.</p>`;
+  } else {
+    if(!data.sabados[sab]) data.sabados[sab] = [];
+    const confirmados = data.sabados[sab];
+    const semanaCuota = fechaCuotaVigente();
+
+    // Respuesta rápida y grande para vos mismo
+    const miVa = confirmados.includes(miPerfil.id);
+    const miCuotaOk = estadoCuota(semanaCuota, miPerfil.id).confirmado;
+    const miRespuesta = document.createElement("div");
+    miRespuesta.className = "mi-respuesta";
+    miRespuesta.innerHTML = `<div class="mi-respuesta-label">¿Jugás vos este sábado?</div>`;
+    if(!miCuotaOk){
+      const aviso = document.createElement("p");
+      aviso.className = "aviso";
+      aviso.textContent = "Primero tenés que pagar la cuota y que el capitán la confirme.";
+      miRespuesta.appendChild(aviso);
+    }
+    const filaBotones = document.createElement("div");
+    filaBotones.className = "row";
+    const btnJuego = document.createElement("button");
+    btnJuego.textContent = "JUEGO";
+    btnJuego.className = miVa ? "" : "secondary";
+    btnJuego.disabled = !miCuotaOk;
+    btnJuego.onclick = async ()=>{
+      if(!confirmados.includes(miPerfil.id)) confirmados.push(miPerfil.id);
+      await guardarShared();
+      render();
+    };
+    const btnNoJuego = document.createElement("button");
+    btnNoJuego.textContent = "NO JUEGO";
+    btnNoJuego.className = miVa ? "secondary" : "danger";
+    btnNoJuego.disabled = !miCuotaOk;
+    btnNoJuego.onclick = async ()=>{
+      data.sabados[sab] = confirmados.filter(id=>id!==miPerfil.id);
+      await guardarShared();
+      render();
+    };
+    filaBotones.appendChild(btnJuego);
+    filaBotones.appendChild(btnNoJuego);
+    miRespuesta.appendChild(filaBotones);
+    card.appendChild(miRespuesta);
+
+    const list = document.createElement("ul");
+    list.className = "jugador-list";
+    data.jugadores.forEach(j=>{
+      const va = confirmados.includes(j.id);
+      const cuotaOk = estadoCuota(semanaCuota, j.id).confirmado;
+      const li = document.createElement("li");
+      li.className = "jugador-item";
+      li.innerHTML = `<span class="jugador-nombre">${j.nombre}${j.id===miPerfil.id ? '<span class="yo">(vos)</span>' : ''}${!cuotaOk ? ' <span class="badge">debe cuota</span>' : ''}</span>`;
+      const sello = document.createElement("span");
+      sello.className = "sello" + (va ? "" : " pendiente") + (cuotaOk ? "" : " deshabilitado");
+      sello.textContent = va ? "JUEGA" : "NO";
+      if(cuotaOk){
+        sello.onclick = async ()=>{
+          if(va){ data.sabados[sab] = confirmados.filter(id=>id!==j.id); }
+          else { confirmados.push(j.id); }
+          await guardarShared();
+          render();
+        };
+      }
+      li.appendChild(sello);
+      list.appendChild(li);
+    });
+    card.appendChild(list);
+    const resumen = document.createElement("p");
+    resumen.innerHTML = `<span class="badge violeta">${confirmados.length} confirmados</span>`;
+    card.appendChild(resumen);
+  }
+  wrap.appendChild(card);
+  return wrap;
+}
+
+// ---------- AMISTOSOS (sin límite de anotados) ----------
+function vistaAmistosos(){
+  const wrap = document.createElement("div");
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `<h2>Amistosos</h2><p class="hint">Cualquiera puede crear un amistoso y anotarse. Sin límite de gente.</p>`;
+
+  const row = document.createElement("div");
+  row.className = "row";
+  row.innerHTML = `<input type="text" id="am-rival" placeholder="Rival (ej. Los Pibes de Barrio Sur)">`;
+  card.appendChild(row);
+  const row2 = document.createElement("div");
+  row2.className = "row";
+  row2.innerHTML = `<input type="date" id="am-fecha"><input type="text" id="am-cancha" placeholder="Cancha / lugar">`;
+  card.appendChild(row2);
+  const btn = document.createElement("button");
+  btn.textContent = "Crear amistoso";
+  btn.onclick = async ()=>{
+    const rival = document.getElementById("am-rival").value.trim();
+    const fecha = document.getElementById("am-fecha").value;
+    const cancha = document.getElementById("am-cancha").value.trim();
+    if(!rival || !fecha) return;
+    data.amistosos.push({id:uid(), rival, fecha, cancha, anotados:[]});
+    await guardarShared();
+    render();
+  };
+  card.appendChild(btn);
+  wrap.appendChild(card);
+
+  const listaCard = document.createElement("div");
+  listaCard.className = "card";
+  listaCard.innerHTML = `<h2>Próximos</h2>`;
+  const ordenados = data.amistosos.slice().sort((a,b)=>a.fecha.localeCompare(b.fecha));
+  if(!ordenados.length){
+    listaCard.innerHTML += `<p class="empty">No hay amistosos creados.</p>`;
+  }
+  ordenados.forEach(am=>{
+    const ev = document.createElement("div");
+    ev.className = "evento";
+    ev.innerHTML = `
+      <div class="evento-top">
+        <div>
+          <div class="evento-title">vs ${am.rival}</div>
+          <div class="evento-meta">${am.fecha}${am.cancha ? " · "+am.cancha : ""}</div>
+        </div>
+        <span class="badge">${am.anotados.length} anotados</span>
+      </div>
+    `;
+    if(data.jugadores.length){
+      const sel = document.createElement("select");
+      sel.innerHTML = `<option value="">Anotarme...</option>` +
+        data.jugadores
+          .filter(j=>!am.anotados.includes(j.id))
+          .map(j=>`<option value="${j.id}">${j.nombre}</option>`).join("");
+      sel.onchange = async ()=>{
+        if(sel.value){
+          am.anotados.push(sel.value);
+          await guardarShared();
+          render();
+        }
+      };
+      ev.appendChild(sel);
+    }
+    const tags = document.createElement("div");
+    tags.style.marginTop = "8px";
+    am.anotados.forEach(id=>{
+      const t = document.createElement("span");
+      t.className = "tag rem";
+      t.textContent = nombreDe(id);
+      t.onclick = async ()=>{
+        am.anotados = am.anotados.filter(x=>x!==id);
+        await guardarShared();
+        render();
+      };
+      tags.appendChild(t);
+    });
+    ev.appendChild(tags);
+
+    const del = document.createElement("button");
+    del.className = "danger";
+    del.style.marginTop = "8px";
+    del.textContent = "Borrar amistoso";
+    del.onclick = async ()=>{
+      data.amistosos = data.amistosos.filter(x=>x.id!==am.id);
+      await guardarShared();
+      render();
+    };
+    ev.appendChild(del);
+    listaCard.appendChild(ev);
+  });
+  wrap.appendChild(listaCard);
+  return wrap;
+}
+
+// ---------- ASADO ----------
+const APORTES_SUGERIDOS = ["Carne","Bebida","Hielo","Carbón","Pan","Ensalada","Postre","Platos/cubiertos"];
+
+function vistaAsado(){
+  const wrap = document.createElement("div");
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `<h2>Asado</h2><p class="hint">Organizá quién lleva qué para que no falte (ni sobre) nada.</p>`;
+
+  const row = document.createElement("div");
+  row.className = "row";
+  row.innerHTML = `<input type="date" id="as-fecha"><input type="text" id="as-lugar" placeholder="Lugar (casa de...)">`;
+  card.appendChild(row);
+  const btn = document.createElement("button");
+  btn.textContent = "Crear asado";
+  btn.onclick = async ()=>{
+    const fecha = document.getElementById("as-fecha").value;
+    const lugar = document.getElementById("as-lugar").value.trim();
+    if(!fecha) return;
+    data.asados.push({id:uid(), fecha, lugar, aportes:[]});
+    await guardarShared();
+    render();
+  };
+  card.appendChild(btn);
+  wrap.appendChild(card);
+
+  const listaCard = document.createElement("div");
+  listaCard.className = "card";
+  listaCard.innerHTML = `<h2>Próximos asados</h2>`;
+  const ordenados = data.asados.slice().sort((a,b)=>a.fecha.localeCompare(b.fecha));
+  if(!ordenados.length){
+    listaCard.innerHTML += `<p class="empty">No hay asados creados.</p>`;
+  }
+  ordenados.forEach(asd=>{
+    const ev = document.createElement("div");
+    ev.className = "evento";
+    ev.innerHTML = `
+      <div class="evento-top">
+        <div>
+          <div class="evento-title">🔥 ${asd.fecha}</div>
+          <div class="evento-meta">${asd.lugar || "Lugar a confirmar"}</div>
+        </div>
+      </div>
+    `;
+    if(data.jugadores.length){
+      const row2 = document.createElement("div");
+      row2.className = "row";
+      const selJ = document.createElement("select");
+      selJ.innerHTML = `<option value="">Quién...</option>` +
+        data.jugadores.map(j=>`<option value="${j.id}">${j.nombre}</option>`).join("");
+      const selT = document.createElement("select");
+      selT.innerHTML = `<option value="">Lleva...</option>` +
+        APORTES_SUGERIDOS.map(a=>`<option value="${a}">${a}</option>`).join("") +
+        `<option value="otro">Otra cosa</option>`;
+      row2.appendChild(selJ);
+      row2.appendChild(selT);
+      const btn2 = document.createElement("button");
+      btn2.textContent = "Sumar";
+      btn2.onclick = async ()=>{
+        let trae = selT.value;
+        if(trae==="otro"){ trae = prompt("¿Qué lleva?","") || ""; }
+        if(!selJ.value || !trae) return;
+        asd.aportes.push({jugadorId: selJ.value, trae});
+        await guardarShared();
+        render();
+      };
+      row2.appendChild(btn2);
+      ev.appendChild(row2);
+    }
+    const lista = document.createElement("ul");
+    lista.className = "jugador-list";
+    if(!asd.aportes.length){
+      lista.innerHTML = `<li class="empty">Nadie anotó qué lleva todavía.</li>`;
+    }
+    asd.aportes.forEach((ap, idx)=>{
+      const li = document.createElement("li");
+      li.className = "jugador-item";
+      li.innerHTML = `<span class="jugador-nombre">${nombreDe(ap.jugadorId)}</span><span class="badge">${ap.trae}</span>`;
+      const del = document.createElement("button");
+      del.className = "secondary";
+      del.textContent = "×";
+      del.onclick = async ()=>{
+        asd.aportes.splice(idx,1);
+        await guardarShared();
+        render();
+      };
+      li.appendChild(del);
+      lista.appendChild(li);
+    });
+    ev.appendChild(lista);
+
+    const delEv = document.createElement("button");
+    delEv.className = "danger";
+    delEv.style.marginTop = "8px";
+    delEv.textContent = "Borrar asado";
+    delEv.onclick = async ()=>{
+      data.asados = data.asados.filter(x=>x.id!==asd.id);
+      await guardarShared();
+      render();
+    };
+    ev.appendChild(delEv);
+    listaCard.appendChild(ev);
+  });
+  wrap.appendChild(listaCard);
+  return wrap;
+}
+
+cargarTodo();
+</script>
+</body>
+</html>
