@@ -272,14 +272,17 @@ button.full{ width:100%; }
   display:flex;
   padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
   z-index: 40;
+  overflow-x: auto; scrollbar-width: none;
 }
+.nav::-webkit-scrollbar{ display:none; }
 .nav-btn{
-  flex:1; background:none; border:none; padding: 7px 2px;
+  flex:1 0 auto; min-width: 52px;
+  background:none; border:none; padding: 7px 4px;
   display:flex; flex-direction:column; align-items:center; gap:3px;
   color: var(--tinta-suave); min-height:auto; border-radius: 10px;
 }
-.nav-btn svg{ width:20px; height:20px; }
-.nav-btn span{ font-size: 9px; font-weight:700; letter-spacing:.1px; text-transform:uppercase; }
+.nav-btn svg{ width:19px; height:19px; }
+.nav-btn span{ font-size: 8.5px; font-weight:700; letter-spacing:.1px; text-transform:uppercase; }
 .nav-btn.on{ color: var(--azul-soft); background: rgba(59,123,240,.1); }
 
 .sumario{
@@ -398,6 +401,41 @@ button.full{ width:100%; }
   color: var(--tinta-suave); flex:0 0 26px;
 }
 .rank-pos.top{ color: var(--oro); }
+
+/* ============ TRICOUNT ============ */
+.destacado.debe-tema{
+  background: linear-gradient(150deg, rgba(242,96,88,.18), rgba(242,96,88,.05));
+  border-color: rgba(242,96,88,.5);
+}
+.mi-saldo{
+  font-family:'Bebas Neue',sans-serif; font-size: 30px; letter-spacing:.8px;
+  line-height:1.1; margin-bottom: 4px;
+}
+.mi-saldo.positivo{ color: var(--ok); }
+.mi-saldo.negativo{ color: var(--pend); }
+.mi-saldo.neutro{ color: var(--tinta); }
+.mi-saldo-sub{ font-size: 12.5px; color: var(--tinta-suave); }
+
+.pago-fila{
+  display:flex; align-items:center; gap:8px;
+  background: var(--superficie-2); border:1px solid var(--linea);
+  border-radius: 11px; padding: 12px 13px; margin-bottom: 8px;
+  font-size: 14px;
+}
+.pago-fila.mio{ border-color: rgba(242,96,88,.45); background: rgba(242,96,88,.08); }
+.pago-de{ font-weight:700; }
+.pago-flecha{ color: var(--tinta-suave); }
+.pago-a{ font-weight:700; color: var(--ok); }
+.pago-monto{
+  margin-left:auto; font-family:'JetBrains Mono',monospace;
+  font-weight:700; font-size: 15px; color: var(--oro);
+}
+
+.banner-conexion{
+  background: var(--pend); color:#fff;
+  padding: calc(10px + env(safe-area-inset-top)) 14px 10px;
+  font-size: 13px; text-align:center; line-height:1.35;
+}
 
 /* ============ VOTACIÓN ============ */
 .votacion{
@@ -545,8 +583,17 @@ const firebaseConfig = {
   databaseURL: "https://urracas-fe915-default-rtdb.firebaseio.com",
   projectId: "urracas-fe915"
 };
-firebase.initializeApp(firebaseConfig);
-const equipoRef = firebase.database().ref("equipo-la-u");
+let equipoRef;
+let firebaseOk = true;
+try{
+  firebase.initializeApp(firebaseConfig);
+  equipoRef = firebase.database().ref("equipo-la-u");
+}catch(e){
+  firebaseOk = false;
+  console.error("No se pudo iniciar Firebase:", e);
+  // Ref falsa para que la app no se rompa y al menos se pueda ver la pantalla
+  equipoRef = { on:(ev,cb,err)=>{ if(err) err({message:"No se pudo conectar con Firebase."}); }, set:async()=>{} };
+}
 // ==========================================
 
 const PERSONAL_KEY = "mi-perfil-la-u";
@@ -556,7 +603,7 @@ let data = {
   jugadores: [], admins: [],
   fechaCuotaActual: null, fechasCuota: [],
   cuota: {}, sabados: {}, sabadoConfig: {}, amistosos: [], asados: [],
-  montoCuota: "", gastos: []
+  montoCuota: "", gastos: [], tricount: []
 };
 let miPerfil = null;
 
@@ -742,6 +789,48 @@ function totalGastos(){
 }
 function plata(n){
   return "$" + (Number(n)||0).toLocaleString('es-AR');
+}
+
+// ---------- TRICOUNT: BALANCES Y LIQUIDACIÓN ----------
+// Por cada gasto: el que pagó suma el total, y cada participante
+// resta la parte que le toca.
+function balancesTricount(gastos){
+  const bal = {};
+  (gastos||[]).forEach(g=>{
+    const monto = Number(g.monto)||0;
+    const parts = (g.participantes||[]).filter(id=>data.jugadores.find(j=>j.id===id));
+    if(!monto || !parts.length || !g.pagadorId) return;
+    bal[g.pagadorId] = (bal[g.pagadorId]||0) + monto;
+    const cuotaParte = monto / parts.length;
+    parts.forEach(id=>{ bal[id] = (bal[id]||0) - cuotaParte; });
+  });
+  return bal; // positivo = le deben; negativo = debe
+}
+
+// Calcula la menor cantidad de transferencias para saldar todo
+function liquidar(bal){
+  const acreedores = [], deudores = [];
+  Object.keys(bal).forEach(id=>{
+    const v = Math.round(bal[id]*100)/100;
+    if(v > 0.5) acreedores.push({id, monto:v});
+    else if(v < -0.5) deudores.push({id, monto:-v});
+  });
+  acreedores.sort((a,b)=>b.monto-a.monto);
+  deudores.sort((a,b)=>b.monto-a.monto);
+  const pagos = [];
+  let i=0, j=0;
+  while(i < deudores.length && j < acreedores.length){
+    const monto = Math.min(deudores[i].monto, acreedores[j].monto);
+    pagos.push({ de: deudores[i].id, a: acreedores[j].id, monto: Math.round(monto) });
+    deudores[i].monto -= monto;
+    acreedores[j].monto -= monto;
+    if(deudores[i].monto < 0.5) i++;
+    if(acreedores[j].monto < 0.5) j++;
+  }
+  return pagos;
+}
+function totalTricount(gastos){
+  return (gastos||[]).reduce((s,g)=>s + (Number(g.monto)||0), 0);
 }
 
 // ---------- RACHAS Y RÉCORDS ----------
@@ -1026,11 +1115,30 @@ function sanitizar(){
   if(!Array.isArray(data.asados)) data.asados = [];
   data.asados.forEach(a=>{ if(!Array.isArray(a.aportes)) a.aportes = []; });
   if(!Array.isArray(data.gastos)) data.gastos = [];
+  if(!Array.isArray(data.tricount)) data.tricount = [];
+  data.tricount.forEach(g=>{ if(!Array.isArray(g.participantes)) g.participantes = []; });
   if(data.montoCuota === undefined || data.montoCuota === null) data.montoCuota = "";
 }
 function arrancar(){
   cargarPersonal();
+
+  // Si Firebase no responde en 6 segundos, arrancamos igual con lo que haya
+  // para que la pantalla nunca quede vacía.
+  let respondio = false;
+  setTimeout(()=>{
+    if(!respondio){
+      console.warn("Firebase no respondió a tiempo; arrancando sin conexión.");
+      sanitizar();
+      if(!data.fechasCuota.length) data.fechasCuota.push(uid());
+      if(!data.fechaCuotaActual) data.fechaCuotaActual = fechaCuotaVigente();
+      mostrarBannerConexion();
+      if(!miPerfil) mostrarModal(); else render();
+    }
+  }, 6000);
+
   equipoRef.on("value", snap=>{
+    respondio = true;
+    quitarBannerConexion();
     const v = snap.val();
     if(v) data = Object.assign(data, v);
     sanitizar();
@@ -1046,8 +1154,29 @@ function arrancar(){
     if(!miPerfil){ mostrarModal(); }
     else { document.getElementById("modal-root").innerHTML=""; render(); }
   }, err=>{
+    respondio = true;
     console.error("Error leyendo Firebase:", err);
+    sanitizar();
+    if(!data.fechasCuota.length) data.fechasCuota.push(uid());
+    if(!data.fechaCuotaActual) data.fechaCuotaActual = fechaCuotaVigente();
+    mostrarBannerConexion(err && err.message ? err.message : "sin acceso a la base");
+    if(!miPerfil) mostrarModal(); else render();
   });
+}
+
+function mostrarBannerConexion(detalle){
+  if(document.getElementById("banner-conexion")) return;
+  const b = document.createElement("div");
+  b.id = "banner-conexion";
+  b.className = "banner-conexion";
+  b.innerHTML = `<b>Sin conexión con la base de datos.</b> Los cambios pueden no guardarse.` +
+    (detalle ? `<br><span style="opacity:.8;font-size:11.5px;">${detalle}</span>` : "") +
+    `<br><span style="opacity:.8;font-size:11.5px;">Revisá tu internet o las reglas de Firebase.</span>`;
+  document.body.insertBefore(b, document.body.firstChild);
+}
+function quitarBannerConexion(){
+  const b = document.getElementById("banner-conexion");
+  if(b) b.remove();
 }
 
 // ---------- MODAL DE INGRESO ----------
@@ -1167,7 +1296,8 @@ const ICONOS = {
   cuota:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 10h20"/></svg>',
   plantel:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>',
   stats:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>',
-  asado:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2s4 4 4 8a4 4 0 0 1-8 0c0-4 4-8 4-8z"/><path d="M5 22h14"/></svg>'
+  asado:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2s4 4 4 8a4 4 0 0 1-8 0c0-4 4-8 4-8z"/><path d="M5 22h14"/></svg>',
+  cuentas:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>'
 };
 const TABS = [
   {id:"sabado", label:"Sábado"},
@@ -1175,7 +1305,8 @@ const TABS = [
   {id:"cuota", label:"Cuota"},
   {id:"stats", label:"Stats"},
   {id:"plantel", label:"Plantel"},
-  {id:"asado", label:"Asado"}
+  {id:"asado", label:"Asado"},
+  {id:"cuentas", label:"Cuentas"}
 ];
 let tab = "sabado";
 
@@ -1220,6 +1351,7 @@ function render(){
   if(tab==="cuota") cont.appendChild(vCuota());
   if(tab==="plantel") cont.appendChild(vPlantel());
   if(tab==="stats") cont.appendChild(vStats());
+  if(tab==="cuentas") cont.appendChild(vCuentas());
   if(tab==="asado") cont.appendChild(vAsado());
 }
 
@@ -1682,7 +1814,7 @@ function vPlantel(){
   const w = document.createElement("div");
   const card = document.createElement("div");
   card.className="card";
-  card.innerHTML = `<h2>Plantel</h2><p class="hint">${data.jugadores.length} jugadores · el número es cuántos sábados jugó cada uno</p>`;
+  card.innerHTML = `<h2>Plantel</h2><p class="hint">${data.jugadores.length} jugadores · el número es cuántos sábados jugó cada uno${soyCapitan()?" · tocá ☆ para hacer capitán":""}</p>`;
 
   if(soyCapitan()){
     const row = document.createElement("div");
@@ -1722,6 +1854,23 @@ function vPlantel(){
         </span>
       </div>`;
     if(soyCapitan()){
+      const bCap = document.createElement("button");
+      bCap.className = esAdmin(j.id) ? "ghost mini" : "mini";
+      bCap.textContent = esAdmin(j.id) ? "★" : "☆";
+      bCap.title = esAdmin(j.id) ? "Sacarle capitán" : "Hacerlo capitán";
+      bCap.onclick = async ()=>{
+        if(esAdmin(j.id)){
+          if(data.admins.length <= 1){ alert("Tiene que quedar al menos un capitán."); return; }
+          if(!confirm(`¿Sacarle el rol de capitán a ${j.nombre}?`)) return;
+          data.admins = data.admins.filter(x=>x!==j.id);
+        } else {
+          if(!confirm(`¿Hacer capitán a ${j.nombre}? Va a poder confirmar cuotas, cargar resultados y editar el plantel.`)) return;
+          data.admins.push(j.id);
+        }
+        await guardar(); render();
+      };
+      li.appendChild(bCap);
+
       const b = document.createElement("button");
       b.className="danger mini";
       b.textContent="Quitar";
@@ -2004,6 +2153,196 @@ function vStats(){
     });
     w.appendChild(c4);
   }
+  return w;
+}
+
+// ---------- CUENTAS (TRICOUNT) ----------
+function vCuentas(){
+  const w = document.createElement("div");
+  const gastos = data.tricount;
+  const bal = balancesTricount(gastos);
+  const miBal = bal[miPerfil.id] || 0;
+
+  // Mi situación
+  const mi = document.createElement("div");
+  mi.className = "destacado" + (miBal < -0.5 ? " debe-tema" : "");
+  mi.innerHTML = `<span class="etiqueta-tipo ${miBal<-0.5?"amistoso":"sabado"}">💸 MI CUENTA</span>
+    <div class="mi-saldo ${miBal>0.5?"positivo":miBal<-0.5?"negativo":"neutro"}">
+      ${miBal>0.5 ? "Te deben "+plata(miBal) : miBal<-0.5 ? "Debés "+plata(-miBal) : "Estás al día 🙌"}
+    </div>
+    <div class="mi-saldo-sub">Total gastado entre todos: ${plata(totalTricount(gastos))}</div>`;
+  w.appendChild(mi);
+
+  // Cargar gasto
+  const alta = document.createElement("div");
+  alta.className = "card";
+  alta.innerHTML = `<h2>Cargar un gasto</h2><p class="hint">Quién puso la plata y entre quiénes se divide.</p>`;
+
+  const rC = document.createElement("div"); rC.className="row";
+  const inC = document.createElement("input");
+  inC.type="text"; inC.placeholder="Concepto (carne, bebida, cancha...)";
+  rC.appendChild(inC);
+  alta.appendChild(rC);
+
+  const rM = document.createElement("div"); rM.className="row";
+  const inM = document.createElement("input");
+  inM.type="number"; inM.inputMode="decimal"; inM.placeholder="Monto $";
+  const selP = document.createElement("select");
+  selP.innerHTML = data.jugadores.map(j=>
+    `<option value="${j.id}"${j.id===miPerfil.id?" selected":""}>Pagó ${j.nombre}</option>`).join("");
+  rM.appendChild(inM); rM.appendChild(selP);
+  alta.appendChild(rM);
+
+  const sep = document.createElement("div");
+  sep.className="separador"; sep.textContent="¿Entre quiénes se divide?";
+  alta.appendChild(sep);
+
+  const acciones = document.createElement("div");
+  acciones.className="row";
+  const bTodos = document.createElement("button");
+  bTodos.className="ghost mini"; bTodos.textContent="Todos";
+  const bNadie = document.createElement("button");
+  bNadie.className="ghost mini"; bNadie.textContent="Ninguno";
+  acciones.appendChild(bTodos); acciones.appendChild(bNadie);
+  alta.appendChild(acciones);
+
+  const grid = document.createElement("div");
+  grid.className="voto-grid";
+  const seleccion = new Set(data.jugadores.map(j=>j.id));
+  const pintar = ()=>{
+    grid.innerHTML="";
+    data.jugadores.forEach(j=>{
+      const b = document.createElement("button");
+      b.className = "voto-btn" + (seleccion.has(j.id) ? " elegido" : "");
+      b.textContent = j.nombre;
+      b.onclick = ()=>{
+        if(seleccion.has(j.id)) seleccion.delete(j.id); else seleccion.add(j.id);
+        pintar();
+      };
+      grid.appendChild(b);
+    });
+  };
+  pintar();
+  bTodos.onclick = ()=>{ data.jugadores.forEach(j=>seleccion.add(j.id)); pintar(); };
+  bNadie.onclick = ()=>{ seleccion.clear(); pintar(); };
+  alta.appendChild(grid);
+
+  const bAdd = document.createElement("button");
+  bAdd.className="full"; bAdd.textContent="Agregar gasto";
+  bAdd.style.marginTop="12px";
+  bAdd.onclick = async ()=>{
+    const concepto = inC.value.trim();
+    const monto = Number(inM.value)||0;
+    if(!concepto || !monto){ alert("Poné concepto y monto."); return; }
+    if(!seleccion.size){ alert("Elegí entre quiénes se divide."); return; }
+    data.tricount.push({
+      id: uid(), concepto, monto,
+      pagadorId: selP.value,
+      participantes: Array.from(seleccion),
+      fecha: new Date().toISOString().slice(0,10)
+    });
+    await guardar(); render();
+  };
+  alta.appendChild(bAdd);
+  w.appendChild(alta);
+
+  // Quién le debe a quién
+  const pagos = liquidar(bal);
+  const cL = document.createElement("div");
+  cL.className="card";
+  cL.innerHTML = `<h2>Cómo se salda</h2><p class="hint">La forma más corta de quedar a mano.</p>`;
+  if(!pagos.length){
+    cL.innerHTML += `<p class="vacio">${gastos.length ? "Están todos a mano 🙌" : "Todavía no hay gastos cargados."}</p>`;
+  }
+  pagos.forEach(p=>{
+    const li = document.createElement("div");
+    li.className = "pago-fila" + (p.de===miPerfil.id ? " mio" : "");
+    li.innerHTML = `<span class="pago-de">${nombreDe(p.de)}</span>
+      <span class="pago-flecha">→</span>
+      <span class="pago-a">${nombreDe(p.a)}</span>
+      <span class="pago-monto">${plata(p.monto)}</span>`;
+    cL.appendChild(li);
+  });
+  if(pagos.length){
+    const bW = document.createElement("button");
+    bW.className="wsp full"; bW.textContent="Compartir cuentas";
+    bW.style.marginTop="12px";
+    bW.onclick = ()=>{
+      let t = `💸 *URRACAS — Cuentas*\n`;
+      t += `Total gastado: ${plata(totalTricount(gastos))}\n\n`;
+      t += `*Gastos:*\n`;
+      gastos.forEach(g=>{ t += `• ${g.concepto}: ${plata(g.monto)} (puso ${nombreDe(g.pagadorId)})\n`; });
+      t += `\n*Para quedar a mano:*\n`;
+      pagos.forEach(p=>{ t += `• ${nombreDe(p.de)} → ${nombreDe(p.a)}: ${plata(p.monto)}\n`; });
+      window.open("https://wa.me/?text="+encodeURIComponent(t), "_blank");
+    };
+    cL.appendChild(bW);
+  }
+  w.appendChild(cL);
+
+  // Balance de cada uno
+  if(gastos.length){
+    const cB = document.createElement("div");
+    cB.className="card";
+    cB.innerHTML = `<h2>Balance de cada uno</h2>`;
+    const ulB = document.createElement("ul");
+    ulB.className="lista";
+    data.jugadores.slice()
+      .filter(j=>Math.abs(bal[j.id]||0) > 0.5 || gastos.some(g=>g.participantes.includes(j.id)||g.pagadorId===j.id))
+      .sort((a,b)=>(bal[b.id]||0)-(bal[a.id]||0))
+      .forEach(j=>{
+        const v = bal[j.id]||0;
+        const li = document.createElement("li");
+        li.className="item";
+        li.innerHTML = `<div class="item-main">
+            <span class="item-nom">${j.nombre}${j.id===miPerfil.id?' <span class="yo">(vos)</span>':''}</span>
+          </div>
+          <span class="pill ${v>0.5?"ok":v<-0.5?"no":""}">${v>0.5?"+"+plata(v):v<-0.5?"-"+plata(-v):"a mano"}</span>`;
+        ulB.appendChild(li);
+      });
+    cB.appendChild(ulB);
+    w.appendChild(cB);
+  }
+
+  // Lista de gastos
+  const cG = document.createElement("div");
+  cG.className="card";
+  cG.innerHTML = `<h2>Gastos cargados</h2>`;
+  if(!gastos.length){
+    cG.innerHTML += `<p class="vacio">Ninguno todavía.</p>`;
+  }
+  gastos.slice().reverse().forEach(g=>{
+    const li = document.createElement("li");
+    li.className="item";
+    li.innerHTML = `<div class="item-main">
+        <span class="item-nom">${g.concepto}</span>
+        <span class="item-sub">Puso ${nombreDe(g.pagadorId)} · entre ${g.participantes.length} · ${plata((Number(g.monto)||0)/Math.max(1,g.participantes.length))} c/u</span>
+      </div>
+      <span class="pill oro">${plata(g.monto)}</span>`;
+    if(g.pagadorId===miPerfil.id || soyCapitan()){
+      const x = document.createElement("button");
+      x.className="ghost mini"; x.textContent="✕";
+      x.onclick = async ()=>{
+        if(!confirm(`¿Borrar el gasto "${g.concepto}"?`)) return;
+        data.tricount = data.tricount.filter(y=>y.id!==g.id);
+        await guardar(); render();
+      };
+      li.appendChild(x);
+    }
+    cG.appendChild(li);
+  });
+  if(gastos.length && soyCapitan()){
+    const bR = document.createElement("button");
+    bR.className="danger full"; bR.textContent="Saldar todo y empezar de cero";
+    bR.style.marginTop="12px";
+    bR.onclick = async ()=>{
+      if(!confirm("Esto borra todos los gastos cargados. ¿Seguro? Usalo cuando ya se pagaron entre todos.")) return;
+      data.tricount = [];
+      await guardar(); render();
+    };
+    cG.appendChild(bR);
+  }
+  w.appendChild(cG);
   return w;
 }
 
