@@ -652,7 +652,15 @@ function estadoCuota(fecha, pid){
 function partidosJugados(pid){
   return Object.values(data.sabados||{}).filter(a=>Array.isArray(a)&&a.includes(pid)).length;
 }
+// Exentos: los que son del grupo pero no pagan cuota (no juegan, van a ver, etc.).
+// Lo marca un capitán desde la pestaña Plantel.
+function esExento(pid){
+  const j = data.jugadores.find(x=>x.id===pid);
+  return !!(j && j.exento);
+}
 function cuotaAlDia(pid){
+  // El exento siempre está al día: nunca le aparece deuda ni se le bloquea anotarse.
+  if(esExento(pid)) return true;
   // Usa la MISMA fecha que la pestaña Cuota, para que confirmar un pago
   // habilite al jugador inmediatamente en la pestaña Sábado.
   const f = data.fechaCuotaActual || fechaCuotaVigente();
@@ -1108,6 +1116,7 @@ async function guardar(){
 function sanitizar(){
   // Firebase elimina arrays/objetos vacíos: hay que reponerlos al leer.
   if(!Array.isArray(data.jugadores)) data.jugadores = [];
+  data.jugadores.forEach(j=>{ j.exento = !!j.exento; });
   if(!Array.isArray(data.admins)) data.admins = [];
   if(!Array.isArray(data.fechasCuota)) data.fechasCuota = [];
   if(!data.cuota || typeof data.cuota!=="object") data.cuota = {};
@@ -1347,10 +1356,12 @@ function render(){
   salir.onclick = cerrarSesion;
   chip.appendChild(salir);
 
-  const cuotaOk = data.jugadores.filter(j=>cuotaAlDia(j.id)).length;
+  // Los exentos no cuentan: ni arriba ni abajo de "Pagaron X/Y".
+  const paganCuota = data.jugadores.filter(j=>!j.exento);
+  const cuotaOk = paganCuota.filter(j=>cuotaAlDia(j.id)).length;
   const sab = sabadoActivo();
   document.getElementById("st-plantel").textContent = data.jugadores.length;
-  document.getElementById("st-cuota").textContent = cuotaOk + "/" + data.jugadores.length;
+  document.getElementById("st-cuota").textContent = cuotaOk + "/" + paganCuota.length;
   document.getElementById("st-sabado").textContent = (data.sabados[sab]||[]).length;
 
   const cont = document.getElementById("contenido");
@@ -1695,8 +1706,37 @@ function vCuota(){
     w.appendChild(card); return w;
   }
 
-  const pend = data.jugadores.filter(j=>!estadoCuota(fa,j.id).confirmado);
-  const conf = data.jugadores.filter(j=>estadoCuota(fa,j.id).confirmado);
+  const exentos = data.jugadores.filter(j=>j.exento);
+  const paganCuota = data.jugadores.filter(j=>!j.exento);
+  const pend = paganCuota.filter(j=>!estadoCuota(fa,j.id).confirmado);
+  const conf = paganCuota.filter(j=>estadoCuota(fa,j.id).confirmado);
+
+  // Botón para recordarle la cuota al grupo por WhatsApp.
+  // Separa a los que no pagaron de los que ya avisaron y esperan confirmación.
+  if(pend.length){
+    const bWsp = document.createElement("button");
+    bWsp.className = "wsp full";
+    bWsp.textContent = "Recordar la cuota al grupo";
+    bWsp.style.marginBottom = "12px";
+    bWsp.onclick = ()=>{
+      const deben = pend.filter(j=>!estadoCuota(fa,j.id).declarado);
+      const porConfirmar = pend.filter(j=>estadoCuota(fa,j.id).declarado);
+      const monto = Number(data.montoCuota) || 0;
+      let t = `💰 *URRACAS — Cuota (${etiquetaFecha(fa)})*\n`;
+      if(monto) t += `Son ${plata(monto)} por fecha\n`;
+      if(deben.length){
+        t += `\n❌ *Todavía no pagaron (${deben.length}):*\n` +
+             deben.map(j=>`• ${j.nombre}`).join("\n") + "\n";
+      }
+      if(porConfirmar.length){
+        t += `\n⏳ *Dicen que pagaron, falta confirmar (${porConfirmar.length}):*\n` +
+             porConfirmar.map(j=>`• ${j.nombre}`).join("\n") + "\n";
+      }
+      t += pieInvitacion("Pagá y marcá acá");
+      compartirWsp(t);
+    };
+    card.appendChild(bWsp);
+  }
 
   const ul = document.createElement("ul");
   ul.className="lista";
@@ -1751,6 +1791,22 @@ function vCuota(){
       tags.appendChild(t);
     });
     card.appendChild(tags);
+  }
+
+  if(exentos.length){
+    const sepEx = document.createElement("div");
+    sepEx.className="separador";
+    sepEx.textContent = `🎟️ No pagan cuota (${exentos.length})`;
+    card.appendChild(sepEx);
+    const tagsEx = document.createElement("div");
+    tagsEx.className="tags";
+    exentos.forEach(j=>{
+      const t = document.createElement("span");
+      t.className = "tag";
+      t.textContent = j.nombre;
+      tagsEx.appendChild(t);
+    });
+    card.appendChild(tagsEx);
   }
   w.appendChild(card);
 
@@ -1834,7 +1890,7 @@ function vPlantel(){
   const w = document.createElement("div");
   const card = document.createElement("div");
   card.className="card";
-  card.innerHTML = `<h2>Plantel</h2><p class="hint">${data.jugadores.length} jugadores · el número es cuántos sábados jugó cada uno${soyCapitan()?" · tocá ☆ para hacer capitán":""}</p>`;
+  card.innerHTML = `<h2>Plantel</h2><p class="hint">${data.jugadores.length} jugadores · el número es cuántos sábados jugó cada uno${soyCapitan()?" · tocá ☆ para hacer capitán y $ para eximir de la cuota":""}</p>`;
 
   if(soyCapitan()){
     const row = document.createElement("div");
@@ -1870,6 +1926,7 @@ function vPlantel(){
         <span class="item-nom">${j.nombre}${yo?' <span class="yo">(vos)</span>':''}</span>
         <span class="item-sub">
           ${esAdmin(j.id)?'<span class="pill oro">capitán</span>':''}
+          ${j.exento?'<span class="pill">no paga cuota</span>':''}
           <span class="pill">${partidosJugados(j.id)} partidos</span>
         </span>
       </div>`;
@@ -1890,6 +1947,22 @@ function vPlantel(){
         await guardar(); render();
       };
       li.appendChild(bCap);
+
+      const bEx = document.createElement("button");
+      bEx.className = j.exento ? "mini" : "ghost mini";
+      bEx.textContent = "$";
+      bEx.title = j.exento ? "Volver a cobrarle la cuota" : "Eximirlo de la cuota";
+      bEx.onclick = async ()=>{
+        if(j.exento){
+          if(!confirm(`¿Volver a cobrarle la cuota a ${j.nombre}?`)) return;
+          j.exento = false;
+        } else {
+          if(!confirm(`¿Eximir a ${j.nombre} de pagar la cuota? Sigue siendo del plantel y se puede anotar a los partidos, pero no se le reclama la cuota.`)) return;
+          j.exento = true;
+        }
+        await guardar(); render();
+      };
+      li.appendChild(bEx);
 
       const b = document.createElement("button");
       b.className="danger mini";
