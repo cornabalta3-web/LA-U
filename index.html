@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0B0E14">
+<meta name="theme-color" content="#0C0A16">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Urracas</title>
@@ -13,13 +13,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap');
 
 :root{
-  --azul: #3B7BF0;
-  --azul-dark: #1B49A8;
-  --azul-soft: #7FADFF;
-  --fondo: #0B0E14;
-  --superficie: #151A23;
-  --superficie-2: #1E242F;
-  --superficie-3: #2A313E;
+  --violeta: #6C5AD6;
+  --violeta-oscuro: #3A2C8F;
+  --violeta-claro: #B9A9FF;
+  --fondo: #0C0A16;
+  --superficie: #17142A;
+  --superficie-2: #221E3A;
+  --superficie-3: #2F2950;
   --tinta: #EDF1F7;
   --tinta-suave: #97A1B2;
   --ok: #35C46B;
@@ -56,7 +56,7 @@ body{
   margin: 0 -14px 16px;
   padding: calc(16px + env(safe-area-inset-top)) 16px 18px;
   background:
-    radial-gradient(120% 100% at 50% 0%, #24408A 0%, #10192B 55%, var(--fondo) 100%);
+    radial-gradient(120% 100% at 50% 0%, #4A3A9E 0%, #181334 55%, var(--fondo) 100%);
   border-bottom: 1px solid var(--linea);
 }
 .header-top{ display:flex; align-items:center; gap: 12px; }
@@ -157,14 +157,14 @@ select{
   padding-right: 38px;
 }
 input::placeholder{ color: #63708A; }
-input:focus, select:focus{ outline:none; border-color: var(--azul); }
+input:focus, select:focus{ outline:none; border-color: var(--violeta); }
 
 button{
   font-family:'Work Sans', sans-serif;
   font-weight:700; font-size: 15px;
   padding: 13px 16px;
   border-radius: 11px; border:none;
-  background: var(--azul); color:#fff;
+  background: var(--violeta); color:#fff;
   cursor:pointer; min-height: 48px;
   display:inline-flex; align-items:center; justify-content:center; gap:6px;
 }
@@ -186,7 +186,18 @@ button.full{ width:100%; }
 .item-main{ flex:1; min-width:0; }
 .item-nom{ font-weight:600; font-size: 15.5px; display:block; }
 .item-sub{ font-size: 11.5px; color: var(--tinta-suave); margin-top: 2px; display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
-.yo{ color: var(--azul-soft); font-weight:700; font-size: 11.5px; }
+.yo{ color: var(--violeta-claro); font-weight:700; font-size: 11.5px; }
+
+/* Inicial con color propio de cada nombre */
+.avatar{
+  flex:0 0 auto; width: 36px; height: 36px; border-radius: 50%;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Bebas Neue', sans-serif; font-size: 18px; letter-spacing:.5px;
+  background: hsl(var(--h) 45% 26%);
+  color: hsl(var(--h) 85% 78%);
+  border: 1.5px solid hsl(var(--h) 50% 38%);
+}
+.item.en-espera .avatar{ opacity:.55; }
 
 /* Píldoras de estado */
 .pill{
@@ -214,8 +225,8 @@ button.full{ width:100%; }
 
 /* ============ MI RESPUESTA (destacado) ============ */
 .destacado{
-  background: linear-gradient(150deg, rgba(59,123,240,.18), rgba(59,123,240,.05));
-  border: 1.5px solid rgba(59,123,240,.5);
+  background: linear-gradient(150deg, rgba(108,90,214,.18), rgba(108,90,214,.05));
+  border: 1.5px solid rgba(108,90,214,.5);
   border-radius: var(--radio);
   padding: 15px;
   margin-bottom: 16px;
@@ -225,6 +236,45 @@ button.full{ width:100%; }
   color:#fff; margin-bottom: 11px;
 }
 .destacado .row{ margin-bottom:0; }
+.pregunta{
+  font-family:'Bebas Neue',sans-serif;
+  font-size: 22px; letter-spacing:.6px; color:#fff;
+  text-align:center; margin: 14px 0 10px;
+}
+
+/* Cuenta regresiva y barra de lugares */
+.cuenta-atras{
+  display:inline-block; margin: 2px 0 10px;
+  font-family:'Bebas Neue',sans-serif; font-size: 15px; letter-spacing:.8px;
+  color: var(--oro);
+  background: rgba(255,201,64,.14); border:1px solid rgba(255,201,64,.3);
+  padding: 3px 11px; border-radius: 999px;
+}
+.lugares{ margin-top: 12px; }
+.lugares-txt{
+  display:flex; justify-content:space-between;
+  font-size: 11.5px; font-weight:700; color: var(--tinta-suave);
+  margin-bottom: 6px; text-transform: uppercase; letter-spacing:.3px;
+}
+.barra{
+  height: 8px; border-radius: 999px;
+  background: rgba(255,255,255,.10); overflow:hidden;
+}
+.barra-llena{
+  height:100%; border-radius: 999px;
+  background: linear-gradient(90deg, var(--violeta), var(--violeta-claro));
+  transition: width .45s cubic-bezier(.4,0,.2,1);
+}
+
+/* Entrada suave al cambiar de pantalla */
+@keyframes entrar{
+  from{ opacity:0; transform: translateY(8px); }
+  to{ opacity:1; transform:none; }
+}
+.anima > *{ animation: entrar .26s cubic-bezier(.2,.7,.3,1) both; }
+.anima > *:nth-child(2){ animation-delay: .05s; }
+.anima > *:nth-child(3){ animation-delay: .1s; }
+.anima > *:nth-child(n+4){ animation-delay: .14s; }
 .destacado button{ font-size: 16px; padding: 15px; }
 .btn-si{ background: var(--ok); color:#06230F; }
 .btn-si.inactivo{ background: var(--superficie-2); color: var(--tinta-suave); border:1px solid var(--linea); }
@@ -246,8 +296,8 @@ button.full{ width:100%; }
 .tags{ display:flex; flex-wrap:wrap; gap:6px; margin-top: 10px; }
 .tag{
   font-size: 12.5px; font-weight:600;
-  background: rgba(59,123,240,.18); color: var(--azul-soft);
-  border: 1px solid rgba(59,123,240,.3);
+  background: rgba(108,90,214,.18); color: var(--violeta-claro);
+  border: 1px solid rgba(108,90,214,.3);
   border-radius: 8px; padding: 6px 10px;
 }
 .tag.quitar{ cursor:pointer; }
@@ -259,7 +309,7 @@ button.full{ width:100%; }
   border-left: 3px solid var(--pend); color: #FFC9C6;
   padding: 10px 12px; border-radius: 8px; margin-bottom: 12px;
 }
-.aviso.info{ background: rgba(59,123,240,.1); border-left-color: var(--azul); color: var(--azul-soft); }
+.aviso.info{ background: rgba(108,90,214,.1); border-left-color: var(--violeta); color: var(--violeta-claro); }
 
 .separador{ font-size: 12px; color: var(--tinta-suave); text-transform:uppercase; letter-spacing:.6px; margin: 18px 0 8px; font-weight:700; }
 
@@ -276,17 +326,46 @@ button.full{ width:100%; }
 }
 .nav::-webkit-scrollbar{ display:none; }
 .nav-btn{
-  flex:1 0 auto; min-width: 52px;
-  background:none; border:none; padding: 7px 4px;
-  display:flex; flex-direction:column; align-items:center; gap:3px;
-  color: var(--tinta-suave); min-height:auto; border-radius: 10px;
+  flex:1 1 0; min-width:0;
+  background:none; border:none; padding: 9px 4px;
+  display:flex; flex-direction:column; align-items:center; gap:5px;
+  color: var(--tinta-suave); min-height:auto; border-radius: 13px;
+  transition: color .15s, background .15s;
 }
-.nav-btn svg{ width:19px; height:19px; }
-.nav-btn span{ font-size: 8.5px; font-weight:700; letter-spacing:.1px; text-transform:uppercase; }
-.nav-btn.on{ color: var(--azul-soft); background: rgba(59,123,240,.1); }
+.nav-btn svg{ width:24px; height:24px; }
+.nav-btn span{ font-size: 11px; font-weight:700; letter-spacing:.2px; }
+.nav-btn.on{ color:#fff; background: rgba(108,90,214,.18); }
+.nav-btn.on svg{ filter: drop-shadow(0 2px 6px rgba(108,90,214,.7)); }
+
+/* Botonazos de la pantalla "Más" */
+.boton-grande{
+  width:100%; text-align:left;
+  background: var(--superficie-2); color: var(--tinta);
+  border: 1px solid var(--linea); border-radius: 13px;
+  padding: 13px 14px; margin-bottom: 9px;
+  display:flex; align-items:center; gap: 13px;
+  min-height: 62px;
+}
+.boton-grande:last-child{ margin-bottom:0; }
+.boton-grande .ico{
+  flex:0 0 auto; width: 38px; height: 38px; border-radius: 11px;
+  background: rgba(108,90,214,.16); color: var(--violeta-claro);
+  display:flex; align-items:center; justify-content:center;
+}
+.boton-grande .ico svg{ width:20px; height:20px; }
+.boton-grande .txt{ flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+.boton-grande .txt .t{ font-size: 15.5px; font-weight:700; }
+.boton-grande .txt .d{ font-size: 12px; font-weight:500; color: var(--tinta-suave); }
+.boton-grande .flecha{ font-size: 21px; color: var(--tinta-suave); flex:0 0 auto; }
+
+.volver{
+  background:none; border:none; color: var(--violeta-claro);
+  font-size: 14px; font-weight:700; padding: 4px 2px 10px;
+  min-height:auto; justify-content:flex-start;
+}
 
 .sumario{
-  cursor:pointer; font-size: 13.5px; font-weight:700; color: var(--azul-soft);
+  cursor:pointer; font-size: 13.5px; font-weight:700; color: var(--violeta-claro);
   padding: 8px 0; list-style:none; user-select:none;
 }
 .sumario::-webkit-details-marker{ display:none; }
@@ -301,7 +380,7 @@ button.full{ width:100%; }
 }
 .modal{
   background: var(--superficie);
-  border:1px solid rgba(59,123,240,.35);
+  border:1px solid rgba(108,90,214,.35);
   border-radius: 20px; padding: 24px 20px;
   width:100%; max-width: 400px;
   max-height: 88vh; overflow-y:auto;
@@ -319,7 +398,7 @@ button.full{ width:100%; }
   background: var(--superficie-2); padding: 12px; border-radius: 11px;
   cursor:pointer;
 }
-.check input{ width:20px; height:20px; flex:0 0 auto; accent-color: var(--azul); }
+.check input{ width:20px; height:20px; flex:0 0 auto; accent-color: var(--violeta); }
 .check label{ margin:0; font-size: 14.5px; color: var(--tinta); font-weight:600; cursor:pointer; }
 .error{ color: var(--pend); font-size: 13px; margin-bottom: 12px; display:none; background: var(--pend-bg); padding: 9px 11px; border-radius: 9px; }
 
@@ -353,7 +432,7 @@ button.full{ width:100%; }
   font-family:'Bebas Neue',sans-serif; font-size: 12px; letter-spacing:.9px;
   padding: 4px 10px; border-radius: 6px; margin-bottom: 8px;
 }
-.etiqueta-tipo.sabado{ background: rgba(59,123,240,.22); color: var(--azul-soft); }
+.etiqueta-tipo.sabado{ background: rgba(108,90,214,.22); color: var(--violeta-claro); }
 .etiqueta-tipo.amistoso{ background: rgba(255,159,42,.2); color: var(--ambar); }
 
 /* ============ RESULTADOS ============ */
@@ -467,14 +546,14 @@ button.wsp::before{ content:"💬 "; }
 /* ============ EQUIPOS ============ */
 .equipos-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 .equipo{ border-radius:12px; padding:12px 10px; }
-.eq-a{ background: rgba(59,123,240,.14); border:1px solid rgba(59,123,240,.35); }
+.eq-a{ background: rgba(108,90,214,.14); border:1px solid rgba(108,90,214,.35); }
 .eq-b{ background: rgba(255,159,42,.12); border:1px solid rgba(255,159,42,.32); }
 .eq-tit{
   font-family:'Bebas Neue',sans-serif; font-size:15px; letter-spacing:.8px;
   text-align:center; margin-bottom:9px; padding-bottom:7px;
   border-bottom:1px solid var(--linea);
 }
-.eq-a .eq-tit{ color: var(--azul-soft); }
+.eq-a .eq-tit{ color: var(--violeta-claro); }
 .eq-b .eq-tit{ color: var(--ambar); }
 .eq-jug{ font-size:13.5px; padding:5px 2px; text-align:center; font-weight:600; }
 
@@ -531,6 +610,65 @@ button.wsp::before{ content:"💬 "; }
 }
 .info-linea{ font-size: 13.5px; color: var(--tinta); margin-top: 3px; }
 
+/* ============ ALIAS PARA TRANSFERIR ============ */
+.alias-box{
+  display:flex; align-items:center; gap:10px;
+  background: rgba(108,90,214,.12);
+  border: 1px solid rgba(185,169,255,.3);
+  border-radius: 12px; padding: 11px 13px; margin-bottom: 12px;
+}
+.alias-box .txt{ flex:1; min-width:0; }
+.alias-box .lbl{ font-size: 11px; font-weight:700; color: var(--tinta-suave); letter-spacing:.3px; }
+.alias-box .alias{
+  font-family:'JetBrains Mono', monospace; font-size: 15px; font-weight:700;
+  color:#fff; word-break: break-all;
+}
+.alias-box button{ flex:0 0 auto; }
+
+/* ============ LO IMPORTANTE ============ */
+.card.importante{ border-color: rgba(185,169,255,.28); }
+.al-dia{
+  font-size: 13.5px; font-weight:600; color: var(--ok);
+  background: var(--ok-bg); border-radius: 11px; padding: 11px 13px;
+}
+.pendiente{
+  width:100%; text-align:left;
+  background: var(--superficie-2); color: var(--tinta);
+  border:1px solid var(--linea); border-radius: 11px;
+  padding: 12px 13px; margin-bottom: 7px;
+  font-size: 14px; font-weight:600;
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+}
+.pendiente:last-child{ margin-bottom:0; }
+.pendiente.urgente{
+  background: var(--pend-bg); color: var(--pend);
+  border-color: rgba(242,96,88,0.35);
+}
+.pendiente .flecha{ font-size: 19px; opacity:.6; flex:0 0 auto; }
+
+/* ============ NOVEDADES ============ */
+ul.novedades{
+  list-style:none; margin: 0 0 4px; padding: 0;
+  text-align:left;
+}
+ul.novedades li{
+  font-size: 13.5px; line-height:1.4; color: var(--tinta);
+  padding: 8px 0 8px 20px; position:relative;
+  border-bottom: 1px solid var(--linea);
+}
+ul.novedades li:last-child{ border-bottom:none; }
+ul.novedades li::before{
+  content:"›"; position:absolute; left:6px; top:7px;
+  color: var(--violeta-claro); font-weight:800;
+}
+.pie-version{ text-align:center; padding: 4px 0 2px; }
+.link-novedades{
+  background:none; border:none; box-shadow:none;
+  color: var(--tinta-suave); font-size: 12px; font-weight:600;
+  text-decoration: underline; text-underline-offset: 3px;
+  min-height: 32px; padding: 6px 10px;
+}
+
 /* ============ FILAS DE DETALLE (modal) ============ */
 .detalle-filas{ margin-top: 4px; }
 .det-fila{
@@ -547,25 +685,33 @@ button.wsp::before{ content:"💬 "; }
 <div class="app">
   <div class="header">
     <div class="header-top">
-      <svg class="escudo" width="46" height="46" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <path d="M50 5 L88 22 V52 C88 74 71 89 50 95 C29 89 12 74 12 52 V22 Z" fill="#0B1220" stroke="#7FADFF" stroke-width="3.5"/>
-        <g transform="translate(50,55)">
-          <path d="M-27 5 C-20 -9 -5 -17 8 -14 C17 -12 24 -5 27 3 L35 1 L26 10 C19 19 6 24 -6 21 C-17 19 -25 13 -27 5 Z" fill="#fff"/>
-          <path d="M-27 5 C-20 -9 -9 -15 -2 -15 C-8 -6 -15 3 -23 8 C-26 9 -27 7 -27 5 Z" fill="#0B1220"/>
-          <circle cx="15" cy="-7" r="2.3" fill="#0B1220"/>
-          <path d="M25 -4 L35 1 L25 5 Z" fill="#0B1220"/>
+      <svg class="escudo" width="46" height="54" viewBox="0 0 100 118" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 4 H96 V62 C96 90 76 108 50 116 C24 108 4 90 4 62 Z" fill="#EFE4CE"/>
+        <path d="M9 9 H91 V62 C91 87 73 103 50 110 C27 103 9 87 9 62 Z" fill="#121016"/>
+        <path d="M13.5 13.5 H86.5 V62 C86.5 84.5 71 99 50 105.5 C29 99 13.5 84.5 13.5 62 Z" fill="#5F4FC4"/>
+        <path d="M13.5 13.5 H86.5 V34 H13.5 Z" fill="#121016"/>
+        <text x="50" y="29.5" text-anchor="middle" font-family="Bebas Neue,Impact,sans-serif" font-size="16" fill="#EFE4CE" letter-spacing="1.6">URRACAS</text>
+        <g transform="translate(53,56)">
+          <path d="M-2 4 L-24 26 L-16 29 L2 10 Z" fill="#14524A"/>
+          <path d="M-2 7 L-19 28 L-14 29.5 L1 13 Z" fill="#2C8C7C"/>
+          <ellipse cx="-1" cy="1" rx="12.5" ry="10.5" fill="#F7F3EA" transform="rotate(-14)"/>
+          <path d="M2 -9 C14 -7 18 4 10 13 C3 17 -5 11 -3 0 Z" fill="#14524A"/>
+          <path d="M3 -6 C12 -4 14 4 8 11 C3 13 -1 9 0 1 Z" fill="#2C8C7C"/>
+          <path d="M-10 -5 C-15 -15 -7 -23 1 -21 C9 -19 10 -9 4 -4 C0 0 -7 0 -10 -5 Z" fill="#121016"/>
+          <path d="M-10 -13 L-25 -10.5 L-10 -7.5 Z" fill="#121016"/>
+          <circle cx="-3" cy="-14" r="1.8" fill="#F7F3EA"/>
+          <path d="M-3 10 L-4 15 M4 9 L4.5 14" stroke="#121016" stroke-width="2.3" stroke-linecap="round"/>
         </g>
       </svg>
-      <div class="header-txt">
         <h1>URRACAS</h1>
         <div class="fecha" id="fecha-hoy"></div>
       </div>
     </div>
     <div class="perfil-chip" id="perfil-chip"></div>
     <div class="stats">
-      <div class="stat"><span class="num" id="st-plantel">0</span><span class="lbl">Plantel</span></div>
+      <div class="stat"><span class="num" id="st-plantel">0</span><span class="lbl">Equipo</span></div>
       <div class="stat"><span class="num" id="st-cuota">0</span><span class="lbl">Pagaron</span></div>
-      <div class="stat"><span class="num" id="st-sabado">0</span><span class="lbl">Van sábado</span></div>
+      <div class="stat"><span class="num" id="st-sabado">0</span><span class="lbl">Juegan</span></div>
     </div>
   </div>
 
@@ -592,17 +738,91 @@ try{
   firebaseOk = false;
   console.error("No se pudo iniciar Firebase:", e);
   // Ref falsa para que la app no se rompa y al menos se pueda ver la pantalla
-  equipoRef = { on:(ev,cb,err)=>{ if(err) err({message:"No se pudo conectar con Firebase."}); }, set:async()=>{} };
+  equipoRef = {
+    on:(ev,cb,err)=>{ if(err) err({message:"No se pudo conectar con Firebase."}); },
+    set:async()=>{},
+    child:()=>({ set:async()=>{}, transaction:async()=>{} })
+  };
 }
 // ==========================================
 
 const PERSONAL_KEY = "mi-perfil-la-u";
 const CODIGO_CAPITAN = "LAU-CAPITAN";
+
+// ======= NOVEDADES =======
+// Al subir un cambio que se note, sumá una entrada arriba de todo y subí
+// VERSION_APP. Al que entra con una versión más nueva que la última que vio
+// en ese celu, le aparece el cartel una sola vez.
+const VERSION_APP = 1;
+const NOVEDADES_KEY = "novedades-vistas-la-u";
+const NOVEDADES = [
+  { v:1, fecha:"10/09/2026", cambios:[
+    "La app se puso los colores del club y el escudo de las Urracas.",
+    "La app quedó más simple: abajo solo Partido, Amistosos y Cuota. El resto está en \"Más\".",
+    "Arreglado: si cargabas el marcador pero no marcabas si se ganó, el partido no contaba para nada (no salía en el historial ni en el balance). Ahora se deduce del marcador.",
+    "Arriba de todo, en Partido, la app te dice lo que tenés pendiente.",
+    "Botón para recordarle la cuota al grupo por WhatsApp.",
+    "Al que no paga cuota (viene pero no juega) se lo marca desde Plantel y deja de figurar como deudor.",
+    "La cuota ahora va por mes (Septiembre, Octubre...) y el mes nuevo se abre solo.",
+    "Mirar un mes anterior es cosa tuya: ya no se lo cambia a todo el equipo.",
+    "La cuota muestra cuántas fechas debe cada uno, no solo la última.",
+    "Los capitanes confirman de una sola vez a todos los que dijeron que pagaron.",
+    "Aunque debas la cuota te podés anotar igual: te avisa, pero ya no te traba.",
+    "Cuando tocás NO JUEGO queda registrado, así se sabe quién no contestó todavía.",
+    "El alias para transferir queda a la vista en Cuota, con botón para copiarlo.",
+    "Los capitanes pueden mandar el recordatorio de deuda por privado o copiarlo para una lista de difusión.",
+    "Si ya estabas en la lista y sos capitán, ahora podés acreditarte con el código (al entrar o desde Plantel).",
+    "Arreglado: si dos se anotaban en el mismo momento, una anotación se podía perder."
+  ]}
+];
 // Link de la app: se detecta solo, así sirve aunque cambie el dominio
 const LINK_APP = (location.origin + location.pathname).replace(/index\.html$/,"");
 
 function compartirWsp(texto){
   window.open("https://wa.me/?text=" + encodeURIComponent(texto), "_blank");
+}
+// Los teléfonos se cargan como los dice la gente (351 123 4567, con o sin 15).
+// WhatsApp los quiere con país y sin el 15: 549 351 123 4567.
+function telWsp(t){
+  let n = String(t||"").replace(/\D/g,"");
+  if(!n) return "";
+  if(n.startsWith("00")) n = n.slice(2);
+  while(n.startsWith("0")) n = n.slice(1);
+  if(!n.startsWith("54")) n = "54" + n;
+  if(!n.startsWith("549")) n = "549" + n.slice(2);
+  let resto = n.slice(3);
+  // Si lo cargaron con el 15 sobra un dígito: 351 15 123 4567 -> 351 123 4567
+  if(resto.length > 10){
+    const i = resto.indexOf("15");
+    if(i >= 2 && i <= 4) resto = resto.slice(0,i) + resto.slice(i+2);
+  }
+  return "549" + resto;
+}
+// Abre el chat privado de alguien con el mensaje ya escrito. Devuelve false si
+// no tiene teléfono cargado, para poder ofrecer copiar el texto.
+function wspPrivado(tel, texto){
+  const n = telWsp(tel);
+  if(!n) return false;
+  window.open("https://wa.me/" + n + "?text=" + encodeURIComponent(texto), "_blank");
+  return true;
+}
+async function copiar(texto){
+  try{
+    await navigator.clipboard.writeText(texto);
+    return true;
+  }catch(e){
+    // Safari viejo y http:// no tienen clipboard: probamos a la antigua.
+    try{
+      const ta = document.createElement("textarea");
+      ta.value = texto;
+      ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand("copy");
+      ta.remove();
+      return ok;
+    }catch(e2){ return false; }
+  }
 }
 function pieInvitacion(accion){
   return `\n\n👉 *${accion}*\n${LINK_APP}\n\n_No hace falta contestar por acá — entrá a la página y listo._`;
@@ -611,18 +831,46 @@ function pieInvitacion(accion){
 let data = {
   jugadores: [], admins: [],
   fechaCuotaActual: null, fechasCuota: [],
-  cuota: {}, sabados: {}, sabadoConfig: {}, amistosos: [], asados: [],
-  montoCuota: "", gastos: [], tricount: []
+  cuota: {}, sabados: {}, sabadoNo: {}, sabadoConfig: {}, amistosos: [], asados: [],
+  montoCuota: "", alias: "", gastos: [], tricount: []
 };
 let miPerfil = null;
 
 function uid(){ return Math.random().toString(36).slice(2,9); }
+// Para comparar nombres sin que "José" y "jose" sean dos personas distintas.
+function sinAdornos(s){
+  return (s||"").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
 function proximoSabado(){
   const d = new Date();
   const diff = (6 - d.getDay() + 7) % 7 || 7;
   const s = new Date(d);
   s.setDate(d.getDate() + (d.getDay()===6 ? 0 : diff));
   return s.toISOString().slice(0,10);
+}
+// Cuántos días faltan, en criollo: "Faltan 3 días", "Mañana", "¡Es hoy!"
+function diasPara(fecha){
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const d = new Date(fecha + "T12:00:00"); d.setHours(0,0,0,0);
+  return Math.round((d - hoy) / 86400000);
+}
+function textoCuandoFalta(fecha){
+  const n = diasPara(fecha);
+  if(n === 0) return "¡Es hoy!";
+  if(n === 1) return "Es mañana";
+  if(n < 0) return n === -1 ? "Fue ayer" : "Ya se jugó";
+  if(n < 7) return "Faltan " + n + " días";
+  return "Falta más de una semana";
+}
+// Inicial de colorcito para las listas: el mismo nombre siempre da el mismo color.
+function inicialDe(nombre){ return (nombre||"?").trim().charAt(0).toUpperCase(); }
+function tonoDe(nombre){
+  let h = 0;
+  for(let i=0; i<(nombre||"").length; i++) h = (h*31 + nombre.charCodeAt(i)) % 360;
+  return h;
+}
+function avatar(nombre){
+  return `<span class="avatar" style="--h:${tonoDe(nombre)}">${inicialDe(nombre)}</span>`;
 }
 function fechaLinda(iso){
   if(!iso) return "";
@@ -638,9 +886,40 @@ function soyCapitan(){ return miPerfil && esAdmin(miPerfil.id); }
 function fechaCuotaVigente(){
   return data.fechasCuota.length ? data.fechasCuota[data.fechasCuota.length-1] : null;
 }
+// ---------- FECHAS DE CUOTA (un mes cada una) ----------
+// Las fechas son meses: el id es "2026-09". Se abren solas, nadie tiene que
+// acordarse de crear la siguiente. Las viejas (ids random, de antes de esto)
+// siguen andando y se muestran como "Fecha 1", "Fecha 2"...
+// Si algún día cobran por semana en vez de por mes, se cambia `periodoActual()`.
+const MESES = ["enero","febrero","marzo","abril","mayo","junio",
+               "julio","agosto","septiembre","octubre","noviembre","diciembre"];
+function periodoActual(){ return new Date().toISOString().slice(0,7); }
+function esPeriodo(id){ return /^\d{4}-\d{2}$/.test(id||""); }
 function etiquetaFecha(id){
+  if(esPeriodo(id)){
+    const [a,m] = id.split("-");
+    const nombre = MESES[Number(m)-1] || "?";
+    const txt = nombre.charAt(0).toUpperCase() + nombre.slice(1);
+    return Number(a) === new Date().getFullYear() ? txt : txt + " " + a;
+  }
   const i = data.fechasCuota.indexOf(id);
   return i >= 0 ? "Fecha " + (i+1) : "Fecha ?";
+}
+// Abre el mes en curso si todavía no existe. Es idempotente: lo puede llamar
+// cualquiera desde cualquier celu y el resultado es el mismo.
+async function abrirPeriodoSiHaceFalta(){
+  const p = periodoActual();
+  if(data.fechasCuota.includes(p)) return false;
+  data.fechasCuota.push(p);
+  await guardarRama("fechasCuota", data.fechasCuota);
+  return true;
+}
+// La fecha que se está MIRANDO en la pestaña Cuota. Es de cada uno: mirar una
+// fecha vieja ya no se la cambia al resto (antes se guardaba en la base).
+let fechaVista = null;
+function fechaCuotaVista(){
+  if(!fechaVista || !data.fechasCuota.includes(fechaVista)) fechaVista = fechaCuotaVigente();
+  return fechaVista;
 }
 function estadoCuota(fecha, pid){
   if(!fecha) return {declarado:false, confirmado:false};
@@ -663,8 +942,46 @@ function cuotaAlDia(pid){
   if(esExento(pid)) return true;
   // Usa la MISMA fecha que la pestaña Cuota, para que confirmar un pago
   // habilite al jugador inmediatamente en la pestaña Sábado.
-  const f = data.fechaCuotaActual || fechaCuotaVigente();
+  const f = fechaCuotaVigente();
   return f ? estadoCuota(f, pid).confirmado : false;
+}
+
+// Fechas de cuota que alguien todavía no tiene confirmadas. Se cuenta desde que
+// entró al plantel (`desde`); a los que ya estaban antes de esto se les cuenta
+// desde la primera fecha, que es lo mismo que venía pasando.
+function fechasQueDebe(pid){
+  if(esExento(pid)) return [];
+  const j = data.jugadores.find(x=>x.id===pid);
+  const desde = Math.max(0, data.fechasCuota.indexOf(j && j.desde));
+  return data.fechasCuota.slice(desde).filter(f=>!estadoCuota(f, pid).confirmado);
+}
+function deudaDe(pid){
+  return fechasQueDebe(pid).length * (Number(data.montoCuota) || 0);
+}
+// Mensaje para mandarle por privado al que debe.
+function textoDeuda(j){
+  const n = fechasQueDebe(j.id).length;
+  const monto = deudaDe(j.id);
+  let t = `¡Hola ${j.nombre}! Te escribo por la cuota de Urracas.\n`;
+  t += n > 1
+    ? `Tenés *${n} fechas* sin pagar${monto ? " (" + plata(monto) + ")" : ""}.\n`
+    : `Te falta la cuota de esta fecha${monto ? " (" + plata(monto) + ")" : ""}.\n`;
+  if(data.alias) t += `\n💳 Alias: *${data.alias}*\n`;
+  t += pieInvitacion("Cuando pagues, marcalo acá");
+  return t;
+}
+// Mensaje parejo para todos, para pegar en una lista de difusión.
+function textoDifusion(){
+  const monto = Number(data.montoCuota) || 0;
+  let t = `💰 *URRACAS — Cuota (${etiquetaFecha(fechaCuotaVigente())})*\n`;
+  if(monto) t += `Son ${plata(monto)} por fecha.\n`;
+  if(data.alias) t += `\n💳 Transferí a: *${data.alias}*\n`;
+  t += `\nEn la app ves cuántas fechas debés, y cuando pagues marcá *PAGUÉ* así el capitán lo confirma.\n`;
+  t += pieInvitacion("Mirá tu cuota acá");
+  return t;
+}
+function dijoSiJuega(sab, pid){
+  return (data.sabados[sab]||[]).includes(pid) || (data.sabadoNo[sab]||[]).includes(pid);
 }
 
 // Sábado que se está viendo. Por defecto el próximo, pero se puede navegar.
@@ -719,6 +1036,12 @@ function normalizarResultado(o){
   if(o.mvp === undefined) o.mvp = "";
   if(!o.votosMvp || typeof o.votosMvp !== "object") o.votosMvp = {};
   if(!Array.isArray(o.goleadores)) o.goleadores = []; // [{jugadorId, goles}]
+  // Si cargaron el marcador pero se olvidaron de marcar si se ganó, lo deducimos.
+  // Sin esto el partido queda invisible: no entra en el historial ni en el balance.
+  if(!o.resultado && o.golesF !== "" && o.golesC !== "" && o.golesF != null && o.golesC != null){
+    const f = Number(o.golesF), c = Number(o.golesC);
+    if(!isNaN(f) && !isNaN(c)) o.resultado = f > c ? "gano" : (f < c ? "perdio" : "empate");
+  }
   return o;
 }
 
@@ -902,8 +1225,101 @@ function presenciasTotales(pid){
   n += (data.amistosos||[]).filter(a=>Array.isArray(a.anotados)&&a.anotados.includes(pid)).length;
   return n;
 }
+// ---------- LO IMPORTANTE: lo que cada uno tiene pendiente ----------
+function haceDias(n){
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d.toISOString().slice(0,10);
+}
+// Sábado más reciente (de las últimas 2 semanas) que ya terminó, en el que jugó
+// y todavía no votó la figura. Con el límite no queda cargoseando para siempre.
+function sabadoSinVotar(pid){
+  const limite = haceDias(14);
+  const fechas = Object.keys(data.sabados||{})
+    .filter(f=>Array.isArray(data.sabados[f]) && data.sabados[f].includes(pid))
+    .sort().reverse();
+  for(const f of fechas){
+    if(f < limite) break;
+    const c = configSabado(f);
+    if(partidoTerminado(f, c.hora) && data.sabados[f].length > 1 && !(c.votosMvp||{})[pid]) return f;
+  }
+  return null;
+}
+function sabadoSinResultado(){
+  const limite = haceDias(14);
+  const fechas = Object.keys(data.sabados||{})
+    .filter(f=>Array.isArray(data.sabados[f]) && data.sabados[f].length)
+    .sort().reverse();
+  for(const f of fechas){
+    if(f < limite) break;
+    const c = configSabado(f);
+    if(partidoTerminado(f, c.hora) && !c.resultado) return f;
+  }
+  return null;
+}
+function pendientesMios(){
+  const out = [];
+  const sab = proximoSabado();
+
+  const debe = fechasQueDebe(miPerfil.id);
+  if(debe.length){
+    const monto = deudaDe(miPerfil.id);
+    out.push({
+      txt: debe.length === 1
+        ? "Debés la cuota de " + etiquetaFecha(debe[0])
+        : `Debés ${debe.length} fechas de cuota` + (monto ? " — " + plata(monto) : ""),
+      tab:"cuota", urgente:true
+    });
+  }
+  if(!dijoSiJuega(sab, miPerfil.id)){
+    out.push({ txt:`No dijiste si jugás el sábado ${fechaLinda(sab)}`, tab:"sabado", fecha:sab, urgente:true });
+  }
+  const votar = sabadoSinVotar(miPerfil.id);
+  if(votar) out.push({ txt:`Votá la figura del partido del ${fechaLinda(votar)}`, tab:"sabado", fecha:votar });
+
+  if(soyCapitan()){
+    const fa = fechaCuotaVigente();
+    const porConfirmar = data.jugadores.filter(j=>
+      !j.exento && estadoCuota(fa,j.id).declarado && !estadoCuota(fa,j.id).confirmado);
+    if(porConfirmar.length){
+      out.push({ txt: porConfirmar.length === 1
+        ? `${porConfirmar[0].nombre} dice que pagó: falta que lo confirmes`
+        : `${porConfirmar.length} dicen que pagaron: falta que los confirmes`, tab:"cuota" });
+    }
+    const sinRes = sabadoSinResultado();
+    if(sinRes) out.push({ txt:`Falta cargar el resultado del ${fechaLinda(sinRes)}`, tab:"sabado", fecha:sinRes });
+  }
+  return out;
+}
+function bloqueImportante(){
+  const items = pendientesMios();
+  const card = document.createElement("div");
+  card.className = "card importante";
+  card.innerHTML = `<h2>Lo importante</h2>`;
+  if(!items.length){
+    const ok = document.createElement("div");
+    ok.className = "al-dia";
+    ok.textContent = "✅ Estás al día, no tenés nada pendiente.";
+    card.appendChild(ok);
+    return card;
+  }
+  items.forEach(it=>{
+    const b = document.createElement("button");
+    b.className = "pendiente" + (it.urgente ? " urgente" : "");
+    b.innerHTML = `<span>${it.txt}</span><span class="flecha">›</span>`;
+    b.onclick = ()=>{
+      if(it.fecha) sabadoVisto = it.fecha;
+      tab = it.tab; render(); window.scrollTo(0,0);
+    };
+    card.appendChild(b);
+  });
+  return card;
+}
+
 // Construye el bloque de resultado + MVP para un partido (sábado o amistoso)
-function bloqueResultado(obj, plantel, onGuardar, fechaPartido, horaPartido){
+// `rutaVotos` es la ramita donde viven los votos de este partido. Se guarda solo
+// el voto propio, porque después del partido votan todos casi al mismo tiempo.
+function bloqueResultado(obj, plantel, onGuardar, fechaPartido, horaPartido, rutaVotos){
   const cont = document.createElement("div");
   normalizarResultado(obj);
 
@@ -944,9 +1360,16 @@ function bloqueResultado(obj, plantel, onGuardar, fechaPartido, horaPartido){
       b.textContent = nombreDe(id);
       b.onclick = async ()=>{
         if(!obj.votosMvp) obj.votosMvp = {};
-        if(obj.votosMvp[miPerfil.id] === id) delete obj.votosMvp[miPerfil.id];
+        const saco = obj.votosMvp[miPerfil.id] === id;
+        if(saco) delete obj.votosMvp[miPerfil.id];
         else obj.votosMvp[miPerfil.id] = id;
-        await onGuardar();
+        if(rutaVotos){
+          // Guardamos solo mi voto, no el árbol entero.
+          await guardarRama(rutaVotos + "/" + miPerfil.id, saco ? null : id);
+          render();
+        } else {
+          await onGuardar();
+        }
       };
       grid.appendChild(b);
     });
@@ -986,7 +1409,7 @@ function bloqueResultado(obj, plantel, onGuardar, fechaPartido, horaPartido){
     const rR = document.createElement("div"); rR.className="row";
     const selR = document.createElement("select");
     selR.innerHTML = `
-      <option value="">Sin cargar</option>
+      <option value="">Se calcula con el marcador</option>
       <option value="gano"${obj.resultado==="gano"?" selected":""}>Ganamos</option>
       <option value="empate"${obj.resultado==="empate"?" selected":""}>Empatamos</option>
       <option value="perdio"${obj.resultado==="perdio"?" selected":""}>Perdimos</option>`;
@@ -1000,6 +1423,17 @@ function bloqueResultado(obj, plantel, onGuardar, fechaPartido, horaPartido){
     inC.type="number"; inC.inputMode="numeric"; inC.placeholder="De ellos"; inC.value = obj.golesC;
     rG.appendChild(inF); rG.appendChild(inC);
     cuerpo.appendChild(rG);
+
+    // El desplegable se acomoda solo mientras escriben el marcador, para que no
+    // quede en "Sin cargar" y el partido termine sin contar.
+    const sincronizarResultado = ()=>{
+      if(inF.value === "" || inC.value === "") return;
+      const f = Number(inF.value), c = Number(inC.value);
+      if(isNaN(f) || isNaN(c)) return;
+      selR.value = f > c ? "gano" : (f < c ? "perdio" : "empate");
+    };
+    inF.oninput = sincronizarResultado;
+    inC.oninput = sincronizarResultado;
 
     const lista = plantel.length ? plantel : data.jugadores.map(j=>j.id);
 
@@ -1054,6 +1488,8 @@ function bloqueResultado(obj, plantel, onGuardar, fechaPartido, horaPartido){
       obj.resultado = selR.value;
       obj.golesF = inF.value;
       obj.golesC = inC.value;
+      // Con el marcador alcanza: si no tocaron el desplegable, se deduce solo.
+      normalizarResultado(obj);
       await onGuardar();
     };
     cuerpo.appendChild(bG);
@@ -1064,14 +1500,28 @@ function bloqueResultado(obj, plantel, onGuardar, fechaPartido, horaPartido){
 }
 
 // ---------- VENTANA DE DETALLE (con escudo) ----------
-const ESCUDO_SVG = `<svg width="70" height="70" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-  <path d="M50 5 L88 22 V52 C88 74 71 89 50 95 C29 89 12 74 12 52 V22 Z" fill="#0B1220" stroke="#7FADFF" stroke-width="3.5"/>
-  <g transform="translate(50,55)">
-    <path d="M-27 5 C-20 -9 -5 -17 8 -14 C17 -12 24 -5 27 3 L35 1 L26 10 C19 19 6 24 -6 21 C-17 19 -25 13 -27 5 Z" fill="#fff"/>
-    <path d="M-27 5 C-20 -9 -9 -15 -2 -15 C-8 -6 -15 3 -23 8 C-26 9 -27 7 -27 5 Z" fill="#0B1220"/>
-    <circle cx="15" cy="-7" r="2.3" fill="#0B1220"/>
-    <path d="M25 -4 L35 1 L25 5 Z" fill="#0B1220"/>
-  </g></svg>`;
+// El escudo del club, dibujado a mano en SVG (el mismo que el del buzo).
+function escudoSVG(ancho){
+  return `<svg width="${ancho}" height="${Math.round(ancho*1.18)}" viewBox="0 0 100 118" xmlns="http://www.w3.org/2000/svg">
+    <path d="M4 4 H96 V62 C96 90 76 108 50 116 C24 108 4 90 4 62 Z" fill="#EFE4CE"/>
+    <path d="M9 9 H91 V62 C91 87 73 103 50 110 C27 103 9 87 9 62 Z" fill="#121016"/>
+    <path d="M13.5 13.5 H86.5 V62 C86.5 84.5 71 99 50 105.5 C29 99 13.5 84.5 13.5 62 Z" fill="#5F4FC4"/>
+    <path d="M13.5 13.5 H86.5 V34 H13.5 Z" fill="#121016"/>
+    <text x="50" y="29.5" text-anchor="middle" font-family="Bebas Neue,Impact,sans-serif" font-size="16" fill="#EFE4CE" letter-spacing="1.6">URRACAS</text>
+    <g transform="translate(53,56)">
+      <path d="M-2 4 L-24 26 L-16 29 L2 10 Z" fill="#14524A"/>
+      <path d="M-2 7 L-19 28 L-14 29.5 L1 13 Z" fill="#2C8C7C"/>
+      <ellipse cx="-1" cy="1" rx="12.5" ry="10.5" fill="#F7F3EA" transform="rotate(-14)"/>
+      <path d="M2 -9 C14 -7 18 4 10 13 C3 17 -5 11 -3 0 Z" fill="#14524A"/>
+      <path d="M3 -6 C12 -4 14 4 8 11 C3 13 -1 9 0 1 Z" fill="#2C8C7C"/>
+      <path d="M-10 -5 C-15 -15 -7 -23 1 -21 C9 -19 10 -9 4 -4 C0 0 -7 0 -10 -5 Z" fill="#121016"/>
+      <path d="M-10 -13 L-25 -10.5 L-10 -7.5 Z" fill="#121016"/>
+      <circle cx="-3" cy="-14" r="1.8" fill="#F7F3EA"/>
+      <path d="M-3 10 L-4 15 M4 9 L4.5 14" stroke="#121016" stroke-width="2.3" stroke-linecap="round"/>
+    </g>
+  </svg>`;
+}
+const ESCUDO_SVG = escudoSVG(64);
 
 function abrirDetalle({titulo, sub, filas, anotados}){
   const root = document.getElementById("modal-root");
@@ -1113,14 +1563,61 @@ async function guardar(){
   try{ await equipoRef.set(data); }
   catch(e){ console.error("Error guardando en Firebase:", e); }
 }
+
+// Guarda UNA ramita del árbol en vez de todo. Se usa donde varios pueden estar
+// tocando la app al mismo tiempo: así uno no le pisa lo que acaba de hacer al otro.
+async function guardarRama(ruta, valor){
+  try{ await equipoRef.child(ruta).set(valor); }
+  catch(e){ console.error("Error guardando " + ruta + ":", e); }
+}
+
+// Firebase a veces devuelve las listas como objeto {0:"x",1:"y"} en vez de array.
+// Sin esto, una lista así se leería como vacía y borraríamos a todos los anotados.
+function comoLista(v){
+  if(Array.isArray(v)) return v.slice();
+  if(v && typeof v === "object") return Object.keys(v).map(k=>v[k]).filter(x=>x != null);
+  return [];
+}
+
+// Mete o saca a alguien de una lista compartida (los que juegan y los que no).
+function enLista(arr, id, meter){
+  const i = arr.indexOf(id);
+  if(meter && i < 0) arr.push(id);
+  if(!meter && i >= 0) arr.splice(i, 1);
+  return arr;
+}
+
+// La lista del sábado la tocan todos el mismo día y a la misma hora. Se guarda
+// con transacción: si alguien se adelantó, Firebase reintenta sobre el valor
+// nuevo en vez de pisarlo, así no se pierde ninguna anotación.
+async function cambiarAnotado(sab, pid, entrar){
+  if(!Array.isArray(data.sabados[sab])) data.sabados[sab] = [];
+  if(!Array.isArray(data.sabadoNo[sab])) data.sabadoNo[sab] = [];
+  // Lo mostramos al toque y después lo confirmamos contra el servidor.
+  enLista(data.sabados[sab], pid, entrar);
+  enLista(data.sabadoNo[sab], pid, !entrar);
+  const tx = (ruta, meter)=>{
+    try{
+      return equipoRef.child(ruta).transaction(actual=>
+        enLista(comoLista(actual), pid, meter));
+    }catch(e){ console.error("Error guardando " + ruta + ":", e); }
+  };
+  try{
+    await Promise.all([ tx("sabados/" + sab, entrar), tx("sabadoNo/" + sab, !entrar) ]);
+  }catch(e){ console.error("Error anotando:", e); }
+}
 function sanitizar(){
   // Firebase elimina arrays/objetos vacíos: hay que reponerlos al leer.
   if(!Array.isArray(data.jugadores)) data.jugadores = [];
-  data.jugadores.forEach(j=>{ j.exento = !!j.exento; });
+  data.jugadores.forEach(j=>{
+    j.exento = !!j.exento;
+    if(typeof j.tel !== "string") j.tel = "";
+  });
   if(!Array.isArray(data.admins)) data.admins = [];
   if(!Array.isArray(data.fechasCuota)) data.fechasCuota = [];
   if(!data.cuota || typeof data.cuota!=="object") data.cuota = {};
   if(!data.sabados || typeof data.sabados!=="object") data.sabados = {};
+  if(!data.sabadoNo || typeof data.sabadoNo!=="object") data.sabadoNo = {};
   if(!data.sabadoConfig || typeof data.sabadoConfig!=="object") data.sabadoConfig = {};
   Object.values(data.sabadoConfig).forEach(c=>{
     if(c && typeof c==="object" && !Array.isArray(c.goleadores)) c.goleadores = [];
@@ -1136,6 +1633,7 @@ function sanitizar(){
   if(!Array.isArray(data.tricount)) data.tricount = [];
   data.tricount.forEach(g=>{ if(!Array.isArray(g.participantes)) g.participantes = []; });
   if(data.montoCuota === undefined || data.montoCuota === null) data.montoCuota = "";
+  if(typeof data.alias !== "string") data.alias = "";
 }
 function arrancar(){
   cargarPersonal();
@@ -1147,8 +1645,7 @@ function arrancar(){
     if(!respondio){
       console.warn("Firebase no respondió a tiempo; arrancando sin conexión.");
       sanitizar();
-      if(!data.fechasCuota.length) data.fechasCuota.push(uid());
-      if(!data.fechaCuotaActual) data.fechaCuotaActual = fechaCuotaVigente();
+      if(!data.fechasCuota.length) data.fechasCuota.push(periodoActual());
       mostrarBannerConexion();
       if(!miPerfil) mostrarModal(); else render();
     }
@@ -1160,23 +1657,24 @@ function arrancar(){
     const v = snap.val();
     if(v) data = Object.assign(data, v);
     sanitizar();
-    if(!data.fechasCuota.length){ data.fechasCuota.push(uid()); }
-    if(!data.fechaCuotaActual || !data.fechasCuota.includes(data.fechaCuotaActual)){
-      data.fechaCuotaActual = fechaCuotaVigente();
-    }
+    if(!data.fechasCuota.length){ data.fechasCuota.push(periodoActual()); }
+    abrirPeriodoSiHaceFalta();
     // Si mi perfil ya no existe en el plantel, pido volver a identificarse
     if(miPerfil && !data.jugadores.find(j=>j.id===miPerfil.id)){
       miPerfil = null;
       try{ localStorage.removeItem(PERSONAL_KEY); }catch(e){}
     }
     if(!miPerfil){ mostrarModal(); }
-    else { document.getElementById("modal-root").innerHTML=""; render(); }
+    else {
+      // No barremos el cartel de novedades si lo está leyendo justo ahora.
+      if(!mostrandoNovedades) document.getElementById("modal-root").innerHTML="";
+      render();
+    }
   }, err=>{
     respondio = true;
     console.error("Error leyendo Firebase:", err);
     sanitizar();
-    if(!data.fechasCuota.length) data.fechasCuota.push(uid());
-    if(!data.fechaCuotaActual) data.fechaCuotaActual = fechaCuotaVigente();
+    if(!data.fechasCuota.length) data.fechasCuota.push(periodoActual());
     mostrarBannerConexion(err && err.message ? err.message : "sin acceso a la base");
     if(!miPerfil) mostrarModal(); else render();
   });
@@ -1204,17 +1702,7 @@ function mostrarModal(){
   root.innerHTML = `
     <div class="overlay">
       <div class="modal">
-        <div class="escudo-modal">
-          <svg width="56" height="56" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            <path d="M50 5 L88 22 V52 C88 74 71 89 50 95 C29 89 12 74 12 52 V22 Z" fill="#0B1220" stroke="#7FADFF" stroke-width="3.5"/>
-            <g transform="translate(50,55)">
-              <path d="M-27 5 C-20 -9 -5 -17 8 -14 C17 -12 24 -5 27 3 L35 1 L26 10 C19 19 6 24 -6 21 C-17 19 -25 13 -27 5 Z" fill="#fff"/>
-              <path d="M-27 5 C-20 -9 -9 -15 -2 -15 C-8 -6 -15 3 -23 8 C-26 9 -27 7 -27 5 Z" fill="#0B1220"/>
-              <circle cx="15" cy="-7" r="2.3" fill="#0B1220"/>
-              <path d="M25 -4 L35 1 L25 5 Z" fill="#0B1220"/>
-            </g>
-          </svg>
-        </div>
+        <div class="escudo-modal">${escudoSVG(62)}</div>
         <h2>URRACAS</h2>
         <p class="sub">Entrá para anotarte al equipo</p>
 
@@ -1232,6 +1720,14 @@ function mostrarModal(){
                 <option value="">Seleccioná...</option>
                 ${jug.map(j=>`<option value="${j.id}">${j.nombre}</option>`).join("")}
               </select>
+            </div>
+            <div class="check" id="check-cap2">
+              <input type="checkbox" id="in-capitan2">
+              <label for="in-capitan2">Soy capitán</label>
+            </div>
+            <div class="campo" id="wrap-codigo2" style="display:none;">
+              <label>Código de capitán</label>
+              <input type="text" id="in-codigo2" placeholder="Te lo pasó el organizador" autocomplete="off">
             </div>
             <button class="full" id="btn-existente">Entrar</button>
           ` : `<p class="vacio">Todavía no hay nadie anotado. Usá "Soy nuevo".</p>`}
@@ -1282,9 +1778,17 @@ function mostrarModal(){
     err.style.display="none";
     if(!nombre){ err.textContent="Poné tu nombre."; err.style.display="block"; return; }
     if(cap && cod !== CODIGO_CAPITAN){ err.textContent="Código de capitán incorrecto."; err.style.display="block"; return; }
+    // Crear un segundo "Juan" arranca de cero: sin partidos y debiendo todo.
+    const repetido = data.jugadores.find(j=>sinAdornos(j.nombre) === sinAdornos(nombre));
+    if(repetido && !confirm(
+        `Ya hay un "${repetido.nombre}" en la lista.\n\n` +
+        `Si sos vos, cancelá y entrá con "Ya estoy en la lista": así conservás tus partidos y tu cuota.\n\n` +
+        `¿Crear otro jugador igual?`)){
+      return;
+    }
     const id = uid();
     miPerfil = {id, nombre};
-    data.jugadores.push({id, nombre});
+    data.jugadores.push({id, nombre, exento:false, desde:fechaCuotaVigente()});
     if(cap) data.admins.push(id);
     guardarPersonal();
     await guardar();
@@ -1292,18 +1796,64 @@ function mostrarModal(){
     render();
   };
 
+  // El que ya está en la lista también puede acreditarse como capitán con el código.
+  const chk2 = document.getElementById("in-capitan2");
+  if(chk2) chk2.onchange = e=>{
+    document.getElementById("wrap-codigo2").style.display = e.target.checked ? "block":"none";
+  };
+
   const btnE = document.getElementById("btn-existente");
-  if(btnE) btnE.onclick = ()=>{
+  if(btnE) btnE.onclick = async ()=>{
     const sel = document.getElementById("sel-existente");
     const err = document.getElementById("err2");
     err.style.display="none";
     if(!sel.value){ err.textContent="Elegí tu nombre de la lista."; err.style.display="block"; return; }
     const j = data.jugadores.find(x=>x.id===sel.value);
     if(!j) return;
+    const cap = chk2 && chk2.checked;
+    const cod = cap ? document.getElementById("in-codigo2").value.trim() : "";
+    if(cap && cod !== CODIGO_CAPITAN){
+      err.textContent="Código de capitán incorrecto."; err.style.display="block"; return;
+    }
     miPerfil = {id:j.id, nombre:j.nombre};
     guardarPersonal();
+    if(cap && !data.admins.includes(j.id)){
+      data.admins.push(j.id);
+      await guardarRama("admins", data.admins);
+    }
     root.innerHTML="";
     render();
+  };
+}
+
+// ---------- NOVEDADES ----------
+let novedadesMostradas = false;  // ya se mostró en esta sesión
+let mostrandoNovedades = false;  // hay un cartel abierto justo ahora
+function novedadesPendientes(){
+  let vistas = 0;
+  try{ vistas = Number(localStorage.getItem(NOVEDADES_KEY)) || 0; }catch(e){}
+  return NOVEDADES.filter(n=>n.v > vistas);
+}
+function mostrarNovedades(todas){
+  const lista = todas ? NOVEDADES : novedadesPendientes();
+  if(!lista.length) return;
+  const root = document.getElementById("modal-root");
+  mostrandoNovedades = true;
+  root.innerHTML = `
+    <div class="overlay">
+      <div class="modal">
+        <h2>Novedades</h2>
+        <p class="sub">Lo que cambió en la app</p>
+        ${lista.map(n=>`
+          <div class="separador">Versión ${n.v} · ${n.fecha}</div>
+          <ul class="novedades">${n.cambios.map(c=>`<li>${c}</li>`).join("")}</ul>`).join("")}
+        <button class="full" id="btn-nov">Entendido</button>
+      </div>
+    </div>`;
+  document.getElementById("btn-nov").onclick = ()=>{
+    try{ localStorage.setItem(NOVEDADES_KEY, String(VERSION_APP)); }catch(e){}
+    mostrandoNovedades = false;
+    root.innerHTML = "";
   };
 }
 
@@ -1315,25 +1865,34 @@ const ICONOS = {
   plantel:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>',
   stats:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>',
   asado:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2s4 4 4 8a4 4 0 0 1-8 0c0-4 4-8 4-8z"/><path d="M5 22h14"/></svg>',
-  cuentas:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>'
+  cuentas:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+  mas:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>'
 };
+// Abajo, solo lo que se usa todas las semanas. Lo demás vive adentro de "Más",
+// para que el que entra por primera vez tenga tres cosas y no siete.
 const TABS = [
-  {id:"sabado", label:"Sábado"},
+  {id:"sabado",    label:"Partido"},
   {id:"amistosos", label:"Amistosos"},
-  {id:"cuota", label:"Cuota"},
-  {id:"stats", label:"Stats"},
-  {id:"plantel", label:"Plantel"},
-  {id:"asado", label:"Asado"},
-  {id:"cuentas", label:"Cuentas"}
+  {id:"cuota",     label:"Cuota"},
+  {id:"mas",       label:"Más"}
+];
+const SECUNDARIAS = [
+  {id:"plantel", label:"Plantel", desc:"Quiénes son del equipo"},
+  {id:"stats",   label:"Números", desc:"Goles, figuras y presentismo"},
+  {id:"asado",   label:"Asado",   desc:"Quién lleva qué"},
+  {id:"cuentas", label:"Cuentas", desc:"Gastos que se dividen entre varios"}
 ];
 let tab = "sabado";
+let tabAnterior = null;
 
 function renderNav(){
   const nav = document.getElementById("nav");
   nav.innerHTML = "";
+  // Estando en una pantalla de adentro, el que queda encendido es "Más".
+  const activa = TABS.some(t=>t.id===tab) ? tab : "mas";
   TABS.forEach(t=>{
     const b = document.createElement("button");
-    b.className = "nav-btn" + (t.id===tab ? " on":"");
+    b.className = "nav-btn" + (t.id===activa ? " on":"");
     b.innerHTML = ICONOS[t.id] + `<span>${t.label}</span>`;
     b.onclick = ()=>{ tab = t.id; render(); window.scrollTo(0,0); };
     nav.appendChild(b);
@@ -1366,6 +1925,9 @@ function render(){
 
   const cont = document.getElementById("contenido");
   cont.innerHTML = "";
+  // La animación solo al cambiar de pantalla; si no, parpadea en cada toque.
+  cont.className = (tab !== tabAnterior) ? "anima" : "";
+  tabAnterior = tab;
   if(tab==="sabado") cont.appendChild(vSabado());
   if(tab==="amistosos") cont.appendChild(vAmistosos());
   if(tab==="cuota") cont.appendChild(vCuota());
@@ -1373,23 +1935,72 @@ function render(){
   if(tab==="stats") cont.appendChild(vStats());
   if(tab==="cuentas") cont.appendChild(vCuentas());
   if(tab==="asado") cont.appendChild(vAsado());
+  if(tab==="mas") cont.appendChild(vMas());
+
+  // Las pantallas de adentro llevan un "Volver" arriba de todo.
+  if(SECUNDARIAS.some(s=>s.id===tab)){
+    const volver = document.createElement("button");
+    volver.className = "volver";
+    volver.textContent = "‹ Volver";
+    volver.onclick = ()=>{ tab = "mas"; render(); window.scrollTo(0,0); };
+    cont.insertBefore(volver, cont.firstChild);
+  }
+
+  // Pie con la versión: de paso sirve para releer las novedades cuando quieras.
+  const pie = document.createElement("div");
+  pie.className = "pie-version";
+  const bNov = document.createElement("button");
+  bNov.className = "link-novedades";
+  bNov.textContent = `Novedades · versión ${VERSION_APP}`;
+  bNov.onclick = ()=> mostrarNovedades(true);
+  pie.appendChild(bNov);
+  cont.appendChild(pie);
+
+  if(!novedadesMostradas && novedadesPendientes().length){
+    novedadesMostradas = true;
+    mostrarNovedades(false);
+  }
+}
+
+// ---------- MÁS ----------
+function vMas(){
+  const w = document.createElement("div");
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `<h2>Más cosas</h2><p class="hint">Esto se usa de vez en cuando.</p>`;
+  SECUNDARIAS.forEach(s=>{
+    const b = document.createElement("button");
+    b.className = "boton-grande";
+    b.innerHTML = `<span class="ico">${ICONOS[s.id]}</span>
+      <span class="txt"><span class="t">${s.label}</span><span class="d">${s.desc}</span></span>
+      <span class="flecha">›</span>`;
+    b.onclick = ()=>{ tab = s.id; render(); window.scrollTo(0,0); };
+    card.appendChild(b);
+  });
+  w.appendChild(card);
+  return w;
 }
 
 // ---------- SÁBADO ----------
 function vSabado(){
   const w = document.createElement("div");
+  w.appendChild(bloqueImportante());
   const sab = sabadoActivo();
   if(!data.sabados[sab]) data.sabados[sab] = [];
   const conf = data.sabados[sab];
   const c = configSabado(sab);
   const yoVoy = conf.includes(miPerfil.id);
-  const yoPago = cuotaAlDia(miPerfil.id);
   const cupo = c.modo === "interno" ? CUPO_INTERNO : null;
+  const { titulares, espera } = separarCupo(conf, cupo);
   const lleno = cupo !== null && conf.length >= cupo && !yoVoy;
   const esProximo = sab === proximoSabado();
   const esPasado = sab < new Date().toISOString().slice(0,10);
 
   // ===== Navegador de fechas =====
+  // Solo para capitanes: el resto ve siempre el próximo partido y no se pierde.
+  // (Al que le toca votar una figura vieja lo lleva "Lo importante", y vuelve
+  // con el botón de abajo.)
+  if(soyCapitan()){
   const nav = document.createElement("div");
   nav.className = "nav-fechas";
   const bPrev = document.createElement("button");
@@ -1404,10 +2015,11 @@ function vSabado(){
     (esProximo ? `<span class="pill oro">próximo</span>` : (esPasado ? `<span class="pill">jugado</span>` : ""));
   nav.appendChild(bPrev); nav.appendChild(lbl); nav.appendChild(bNext);
   w.appendChild(nav);
+  }
   if(!esProximo){
     const volver = document.createElement("button");
     volver.className = "ghost mini full";
-    volver.textContent = "↩ Volver al próximo sábado";
+    volver.textContent = "↩ Volver al próximo partido";
     volver.style.marginBottom = "12px";
     volver.onclick = ()=>{ sabadoVisto = proximoSabado(); render(); };
     w.appendChild(volver);
@@ -1416,59 +2028,54 @@ function vSabado(){
   // ===== Bloque destacado: info + mi respuesta =====
   const d = document.createElement("div");
   d.className = "destacado";
+  const llenado = cupo ? Math.min(100, Math.round(titulares.length / cupo * 100)) : 0;
   d.innerHTML = `
     <span class="etiqueta-tipo sabado">⚽ PARTIDO DEL SÁBADO</span>
     <div class="titulo">Sábado ${fechaLinda(sab)}</div>
+    ${esProximo || !esPasado ? `<div class="cuenta-atras">${textoCuandoFalta(sab)}</div>` : ""}
     <div class="info-partido">
       <div class="info-hora">${c.hora ? c.hora + " hs" : "Hora a confirmar"}</div>
       <div class="info-linea">📍 ${textoLugar(c)}</div>
-      <div class="info-linea">⚽ ${textoModo(c)}${cupo ? ` · ${conf.length}/${cupo} lugares` : ""}</div>
-    </div>`;
-  d.appendChild(bloqueResultado(c, conf, async ()=>{ await guardar(); render(); }, sab, c.hora));
+      <div class="info-linea">⚽ ${textoModo(c)}</div>
+    </div>
+    ${cupo ? `
+      <div class="lugares">
+        <div class="lugares-txt">
+          <span>${titulares.length} de ${cupo} lugares</span>
+          <span>${Math.max(0, cupo - titulares.length) === 0 ? "completo" : "quedan " + (cupo - titulares.length)}</span>
+        </div>
+        <div class="barra"><div class="barra-llena" style="width:${llenado}%"></div></div>
+      </div>` : ""}`;
+  d.appendChild(bloqueResultado(c, conf, async ()=>{ await guardar(); render(); }, sab, c.hora,
+    `sabadoConfig/${sab}/votosMvp`));
 
-  const bVer = document.createElement("button");
-  bVer.className = "ghost mini full";
-  bVer.textContent = "Ver detalle del partido";
-  bVer.style.marginBottom = "12px";
-  bVer.onclick = ()=>{
-    abrirDetalle({
-      titulo: "PARTIDO DEL SÁBADO",
-      sub: new Date(sab+"T12:00:00").toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'}),
-      filas: [
-        {lbl:"Hora", val: c.hora ? c.hora + " hs" : "A confirmar"},
-        {lbl:"Lugar", val: textoLugar(c)},
-        {lbl:"Modalidad", val: textoModo(c)},
-        {lbl:"Anotados", val: conf.length + (cupo ? " de " + cupo : "")}
-      ],
-      anotados: conf.map(id=>nombreDe(id))
-    });
-  };
-  d.appendChild(bVer);
 
-  if(!yoPago){
-    const av = document.createElement("div");
-    av.className = "aviso";
-    av.textContent = `Pagá la cuota de ${etiquetaFecha(data.fechaCuotaActual)} y esperá que el capitán la confirme para poder anotarte.`;
-    d.appendChild(av);
-  } else if(lleno){
+  // Deber la cuota ya no te impide anotarte: se avisa, pero no se bloquea.
+  if(lleno){
     const av = document.createElement("div");
     av.className = "aviso info";
     av.textContent = `Los ${cupo} lugares están completos. Si te anotás, quedás en lista de espera y entrás solo si alguien se baja.`;
     d.appendChild(av);
   }
 
+  // La pregunta, bien grande, para que no haya que adivinar qué hacer.
+  const preg = document.createElement("div");
+  preg.className = "pregunta";
+  preg.textContent = yoVoy
+    ? "Estás anotado ✅"
+    : (dijoSiJuega(sab, miPerfil.id) ? "Dijiste que no jugás" : "¿Jugás este sábado?");
+  d.appendChild(preg);
+
   const fila = document.createElement("div");
   fila.className = "row";
   const bSi = document.createElement("button");
   bSi.textContent = "JUEGO";
   bSi.className = "btn-si" + (yoVoy ? "" : " inactivo");
-  bSi.disabled = !yoPago;
-  bSi.onclick = async ()=>{ if(!conf.includes(miPerfil.id)) conf.push(miPerfil.id); await guardar(); render(); };
+  bSi.onclick = async ()=>{ await cambiarAnotado(sab, miPerfil.id, true); render(); };
   const bNo = document.createElement("button");
   bNo.textContent = "NO JUEGO";
   bNo.className = "btn-no" + (yoVoy ? " inactivo" : "");
-  bNo.disabled = !yoPago;
-  bNo.onclick = async ()=>{ data.sabados[sab] = conf.filter(i=>i!==miPerfil.id); await guardar(); render(); };
+  bNo.onclick = async ()=>{ await cambiarAnotado(sab, miPerfil.id, false); render(); };
   fila.appendChild(bSi); fila.appendChild(bNo);
   d.appendChild(fila);
   w.appendChild(d);
@@ -1533,11 +2140,9 @@ function vSabado(){
   }
 
   // ===== Lista del plantel =====
-  const { titulares, espera } = separarCupo(conf, cupo);
-
   const card = document.createElement("div");
   card.className = "card";
-  card.innerHTML = `<h2>Quién juega</h2><p class="hint">${titulares.length} confirmados${cupo ? " de " + cupo + " lugares" : ""}${espera.length ? ` · ${espera.length} en espera` : ""} · cuota de ${etiquetaFecha(data.fechaCuotaActual)}</p>`;
+  card.innerHTML = `<h2>Quién juega</h2><p class="hint">${titulares.length} anotados${cupo ? " de " + cupo + " lugares" : ""}${espera.length ? ` · ${espera.length} en espera` : ""}</p>`;
 
   // Botón compartir a WhatsApp
   const bWsp = document.createElement("button");
@@ -1545,7 +2150,8 @@ function vSabado(){
   bWsp.innerHTML = "Invitar al grupo de WhatsApp";
   bWsp.style.marginBottom = "12px";
   bWsp.onclick = ()=>{
-    const faltan = data.jugadores.filter(j=>!conf.includes(j.id));
+    const faltan = data.jugadores.filter(j=>!dijoSiJuega(sab, j.id));
+    const noVan = (data.sabadoNo[sab]||[]).filter(id=>data.jugadores.find(j=>j.id===id));
     let txt = `⚽ *URRACAS — SÁBADO ${fechaLinda(sab)}*\n\n`;
     txt += `🕐 ${c.hora ? c.hora + " hs" : "Hora a confirmar"}\n`;
     txt += `📍 ${textoLugar(c)}\n`;
@@ -1564,8 +2170,11 @@ function vSabado(){
     if(espera.length){
       txt += `\n⏳ *En espera:*\n` + espera.map((id,i)=>`${i+1}. ${nombreDe(id)}`).join("\n") + "\n";
     }
+    if(noVan.length){
+      txt += `\n🚫 *No pueden:* ` + noVan.map(id=>nombreDe(id)).join(", ") + "\n";
+    }
     if(faltan.length){
-      txt += `\n❓ *Faltan confirmar:* ` + faltan.map(j=>j.nombre).join(", ") + "\n";
+      txt += `\n❓ *Todavía no contestaron:* ` + faltan.map(j=>j.nombre).join(", ") + "\n";
     }
     txt += pieInvitacion("Anotate acá");
     compartirWsp(txt);
@@ -1588,23 +2197,19 @@ function vSabado(){
     const ok = cuotaAlDia(j.id);
     const li = document.createElement("li");
     li.className = "item" + (enEspera ? " en-espera" : "");
-    li.innerHTML = `<div class="item-main">
+    li.innerHTML = `${avatar(j.nombre)}
+      <div class="item-main">
         <span class="item-nom">${j.nombre}${j.id===miPerfil.id?' <span class="yo">(vos)</span>':''}</span>
         <span class="item-sub">
           ${!ok ? '<span class="pill no">debe cuota</span>' : ''}
           ${enEspera ? '<span class="pill ambar">en espera</span>' : ''}
+          ${!dijoSiJuega(sab, j.id) ? '<span class="pill">no contestó</span>' : ''}
         </span>
       </div>`;
     const t = document.createElement("span");
-    t.className = "toggle" + (va ? (enEspera ? " espera" : "") : " no") + (ok ? "" : " off");
+    t.className = "toggle" + (va ? (enEspera ? " espera" : "") : " no");
     t.textContent = enEspera ? "ESPERA" : (va ? "JUEGA" : "NO");
-    if(ok){
-      t.onclick = async ()=>{
-        if(va) data.sabados[sab] = conf.filter(i=>i!==j.id);
-        else conf.push(j.id);
-        await guardar(); render();
-      };
-    }
+    t.onclick = async ()=>{ await cambiarAnotado(sab, j.id, !va); render(); };
     li.appendChild(t);
     ul.appendChild(li);
   });
@@ -1665,7 +2270,7 @@ function vCuota(){
   if(!cuotaAlDia(miPerfil.id)){
     const rec = document.createElement("div");
     rec.className = "recordatorio";
-    const e = estadoCuota(data.fechaCuotaActual, miPerfil.id);
+    const e = estadoCuota(fechaCuotaVigente(), miPerfil.id);
     rec.innerHTML = `<span class="ping"></span><div>${e.declarado
       ? "Ya avisaste que pagaste. <b>Falta que el capitán lo confirme.</b>"
       : "<b>Debés la cuota.</b> Pagá y marcá abajo que ya lo hiciste."}</div>`;
@@ -1674,9 +2279,18 @@ function vCuota(){
 
   const card = document.createElement("div");
   card.className = "card";
-  const fa = data.fechaCuotaActual;
-  card.innerHTML = `<h2>Cuota — ${etiquetaFecha(fa)}</h2>
-    <p class="hint">Marcá si pagaste. El capitán confirma.</p>`;
+  const fa = fechaCuotaVista();
+  const esVigente = fa === fechaCuotaVigente();
+  card.innerHTML = `<h2>Cuota de ${etiquetaFecha(fa)}</h2>
+    <p class="hint">${esVigente ? "Marcá si pagaste. El capitán confirma." : "Estás mirando un mes que ya pasó."}</p>`;
+  if(!esVigente){
+    const volver = document.createElement("button");
+    volver.className = "ghost mini full";
+    volver.textContent = "↩ Volver a " + etiquetaFecha(fechaCuotaVigente());
+    volver.style.marginBottom = "12px";
+    volver.onclick = ()=>{ fechaVista = fechaCuotaVigente(); render(); };
+    card.appendChild(volver);
+  }
 
   const row = document.createElement("div");
   row.className = "row";
@@ -1687,19 +2301,11 @@ function vCuota(){
     if(f===fa) o.selected=true;
     sel.appendChild(o);
   });
-  sel.onchange = async ()=>{ data.fechaCuotaActual = sel.value; await guardar(); render(); };
+  // Cambiar de mes es solo mirar: no se guarda ni le cambia la vista a nadie.
+  sel.onchange = ()=>{ fechaVista = sel.value; render(); };
   row.appendChild(sel);
-  const bN = document.createElement("button");
-  bN.className="ghost mini"; bN.textContent="+ Nueva";
-  bN.style.flex="0 0 auto";
-  bN.onclick = async ()=>{
-    const n = uid();
-    data.fechasCuota.push(n);
-    data.fechaCuotaActual = n;
-    await guardar(); render();
-  };
-  row.appendChild(bN);
-  card.appendChild(row);
+  // Solo se muestra si hay más de un mes; con uno solo, el selector sobra.
+  if(data.fechasCuota.length > 1) card.appendChild(row);
 
   if(!data.jugadores.length){
     card.innerHTML += `<p class="vacio">Sin jugadores.</p>`;
@@ -1724,9 +2330,14 @@ function vCuota(){
       const monto = Number(data.montoCuota) || 0;
       let t = `💰 *URRACAS — Cuota (${etiquetaFecha(fa)})*\n`;
       if(monto) t += `Son ${plata(monto)} por fecha\n`;
+      if(data.alias) t += `\n💳 Transferí a: *${data.alias}*\n(y después marcá "PAGUÉ" en la app)\n`;
       if(deben.length){
         t += `\n❌ *Todavía no pagaron (${deben.length}):*\n` +
-             deben.map(j=>`• ${j.nombre}`).join("\n") + "\n";
+             deben.map(j=>{
+               const n = fechasQueDebe(j.id).length;
+               if(n <= 1) return `• ${j.nombre}`;
+               return `• ${j.nombre} — ${n} fechas` + (deudaDe(j.id) ? ` (${plata(deudaDe(j.id))})` : "");
+             }).join("\n") + "\n";
       }
       if(porConfirmar.length){
         t += `\n⏳ *Dicen que pagaron, falta confirmar (${porConfirmar.length}):*\n` +
@@ -1736,6 +2347,53 @@ function vCuota(){
       compartirWsp(t);
     };
     card.appendChild(bWsp);
+
+    // Mismo mensaje pero parejo para todos, para pegar en una difusión.
+    const bDif = document.createElement("button");
+    bDif.className = "ghost full";
+    bDif.textContent = "Copiar para lista de difusión";
+    bDif.style.marginBottom = "12px";
+    bDif.onclick = async ()=>{
+      const ok = await copiar(textoDifusion());
+      bDif.textContent = ok ? "¡Copiado! Pegalo en tu difusión" : "No se pudo copiar";
+      setTimeout(()=>{ bDif.textContent = "Copiar para lista de difusión"; }, 2200);
+    };
+    card.appendChild(bDif);
+  }
+
+  // Confirmar de a uno es tedioso cuando pagaron ocho juntos.
+  const dijeronQuePagaron = pend.filter(j=>estadoCuota(fa, j.id).declarado);
+  if(soyCapitan() && dijeronQuePagaron.length > 1){
+    const bTodos = document.createElement("button");
+    bTodos.className = "full";
+    bTodos.textContent = `Confirmar los ${dijeronQuePagaron.length} que dijeron que pagaron`;
+    bTodos.style.marginBottom = "12px";
+    bTodos.onclick = async ()=>{
+      if(!confirm(`¿Dar por pagada la cuota de ${dijeronQuePagaron.map(j=>j.nombre).join(", ")}?`)) return;
+      for(const j of dijeronQuePagaron){
+        const e = estadoCuota(fa, j.id);
+        e.confirmado = true;
+        await guardarRama(`cuota/${fa}/${j.id}`, e);
+      }
+      render();
+    };
+    card.appendChild(bTodos);
+  }
+
+  if(data.alias){
+    const ali = document.createElement("div");
+    ali.className = "alias-box";
+    ali.innerHTML = `<div class="txt"><div class="lbl">Transferí a</div><div class="alias">${data.alias}</div></div>`;
+    const bCop = document.createElement("button");
+    bCop.className = "mini";
+    bCop.textContent = "Copiar";
+    bCop.onclick = async ()=>{
+      const ok = await copiar(data.alias);
+      bCop.textContent = ok ? "¡Copiado!" : "No se pudo";
+      setTimeout(()=>{ bCop.textContent = "Copiar"; }, 1500);
+    };
+    ali.appendChild(bCop);
+    card.appendChild(ali);
   }
 
   const ul = document.createElement("ul");
@@ -1746,15 +2404,22 @@ function vCuota(){
     const yo = j.id===miPerfil.id;
     const li = document.createElement("li");
     li.className="item";
-    li.innerHTML = `<div class="item-main">
+    const atrasadas = fechasQueDebe(j.id).length;
+    li.innerHTML = `${avatar(j.nombre)}
+      <div class="item-main">
         <span class="item-nom">${j.nombre}${yo?' <span class="yo">(vos)</span>':''}</span>
+        ${atrasadas > 1 ? `<span class="item-sub"><span class="pill no">debe ${atrasadas} fechas${deudaDe(j.id)?" · "+plata(deudaDe(j.id)):""}</span></span>` : ""}
       </div>`;
     // Declaración: solo uno mismo
     if(yo){
       const t = document.createElement("span");
       t.className = "toggle" + (e.declarado ? "" : " no");
       t.textContent = e.declarado ? "PAGUÉ" : "NO PAGUÉ";
-      t.onclick = async ()=>{ e.declarado = !e.declarado; await guardar(); render(); };
+      t.onclick = async ()=>{
+        e.declarado = !e.declarado;
+        await guardarRama(`cuota/${fa}/${j.id}`, e);
+        render();
+      };
       li.appendChild(t);
     } else {
       const p = document.createElement("span");
@@ -1762,11 +2427,32 @@ function vCuota(){
       p.textContent = e.declarado ? "dice que pagó" : "no pagó";
       li.appendChild(p);
     }
+    // Recordatorio por privado: solo capitán, y no a uno mismo
+    if(soyCapitan() && !yo){
+      const bW = document.createElement("button");
+      bW.className = "mini wsp";
+      bW.textContent = "💬";
+      bW.title = "Recordarle por WhatsApp";
+      bW.onclick = async ()=>{
+        const texto = textoDeuda(j);
+        if(!wspPrivado(j.tel, texto)){
+          const ok = await copiar(texto);
+          alert(ok
+            ? `${j.nombre} no tiene teléfono cargado (se carga tocando su nombre en Plantel).\n\nTe copié el mensaje para que se lo pegues.`
+            : `${j.nombre} no tiene teléfono cargado. Cargalo en Plantel.`);
+        }
+      };
+      li.appendChild(bW);
+    }
     // Confirmación: solo capitán
     if(soyCapitan()){
       const b = document.createElement("button");
       b.className="mini"; b.textContent="OK";
-      b.onclick = async ()=>{ e.confirmado = true; await guardar(); render(); };
+      b.onclick = async ()=>{
+        e.confirmado = true;
+        await guardarRama(`cuota/${fa}/${j.id}`, e);
+        render();
+      };
       li.appendChild(b);
     }
     ul.appendChild(li);
@@ -1785,8 +2471,10 @@ function vCuota(){
       t.className = "tag" + (soyCapitan() ? " quitar":"");
       t.textContent = j.nombre;
       if(soyCapitan()) t.onclick = async ()=>{
-        estadoCuota(fa,j.id).confirmado = false;
-        await guardar(); render();
+        const e = estadoCuota(fa,j.id);
+        e.confirmado = false;
+        await guardarRama(`cuota/${fa}/${j.id}`, e);
+        render();
       };
       tags.appendChild(t);
     });
@@ -1832,6 +2520,21 @@ function vCuota(){
     bMonto.onclick = async ()=>{ data.montoCuota = inMonto.value; await guardar(); render(); };
     rMonto.appendChild(inMonto); rMonto.appendChild(bMonto);
     caja.appendChild(rMonto);
+
+    // Alias para que cada uno transfiera sin que nadie tenga que perseguirlo.
+    const rAlias = document.createElement("div"); rAlias.className="row";
+    const inAlias = document.createElement("input");
+    inAlias.type="text"; inAlias.placeholder="Alias para transferir (ej. urracas.mp)";
+    inAlias.value = data.alias;
+    const bAlias = document.createElement("button");
+    bAlias.className="ghost mini"; bAlias.textContent="Guardar"; bAlias.style.flex="0 0 auto";
+    bAlias.onclick = async ()=>{
+      data.alias = inAlias.value.trim();
+      await guardarRama("alias", data.alias);
+      render();
+    };
+    rAlias.appendChild(inAlias); rAlias.appendChild(bAlias);
+    caja.appendChild(rAlias);
 
     const sepG = document.createElement("div");
     sepG.className="separador"; sepG.textContent="Cargar un gasto";
@@ -1903,7 +2606,8 @@ function vPlantel(){
     b.onclick = async ()=>{
       const n = inp.value.trim();
       if(!n) return;
-      data.jugadores.push({id:uid(), nombre:n});
+      // `desde` marca a partir de qué fecha se le cuenta la cuota.
+      data.jugadores.push({id:uid(), nombre:n, exento:false, desde:fechaCuotaVigente()});
       await guardar(); render();
     };
     row.appendChild(b);
@@ -1911,8 +2615,22 @@ function vPlantel(){
   } else {
     const a = document.createElement("div");
     a.className="aviso info";
-    a.textContent = "Solo los capitanes pueden agregar o quitar jugadores.";
+    a.textContent = "Solo los capitanes pueden agregar o quitar jugadores, confirmar pagos y cargar resultados.";
     card.appendChild(a);
+    // Para que un capitán no dependa de que otro capitán lo ascienda.
+    const bCod = document.createElement("button");
+    bCod.className="ghost full";
+    bCod.textContent="Tengo el código de capitán";
+    bCod.style.marginBottom="10px";
+    bCod.onclick = async ()=>{
+      const c = prompt("Código de capitán:");
+      if(c === null) return;
+      if(c.trim() !== CODIGO_CAPITAN){ alert("Código incorrecto."); return; }
+      if(!data.admins.includes(miPerfil.id)) data.admins.push(miPerfil.id);
+      await guardarRama("admins", data.admins);
+      render();
+    };
+    card.appendChild(bCod);
   }
 
   const ul = document.createElement("ul");
@@ -1922,7 +2640,8 @@ function vPlantel(){
     const yo = j.id===miPerfil.id;
     const li = document.createElement("li");
     li.className="item";
-    li.innerHTML = `<div class="item-main">
+    li.innerHTML = `${avatar(j.nombre)}
+      <div class="item-main">
         <span class="item-nom">${j.nombre}${yo?' <span class="yo">(vos)</span>':''}</span>
         <span class="item-sub">
           ${esAdmin(j.id)?'<span class="pill oro">capitán</span>':''}
@@ -1931,6 +2650,20 @@ function vPlantel(){
         </span>
       </div>`;
     if(soyCapitan()){
+      // El teléfono se edita tocando la píldora, para no meter otro botón en la fila.
+      const sub = li.querySelector(".item-sub");
+      const tel = document.createElement("span");
+      tel.className = "pill" + (j.tel ? "" : " no");
+      tel.style.cursor = "pointer";
+      tel.textContent = j.tel ? "📱 " + j.tel : "📱 sin teléfono";
+      tel.onclick = async ()=>{
+        const v = prompt(`Teléfono de ${j.nombre}\n(con código de área y sin el 15, ej. 3511234567)`, j.tel || "");
+        if(v === null) return;
+        j.tel = v.trim();
+        await guardar(); render();
+      };
+      sub.appendChild(tel);
+
       const bCap = document.createElement("button");
       bCap.className = esAdmin(j.id) ? "ghost mini" : "mini";
       bCap.textContent = esAdmin(j.id) ? "★" : "☆";
@@ -2038,7 +2771,8 @@ function vAmistosos(){
         </div>
         <span class="pill">${am.anotados.length} anotados</span>
       </div>`;
-    ev.appendChild(bloqueResultado(am, am.anotados, async ()=>{ await guardar(); render(); }, am.fecha, am.hora));
+    ev.appendChild(bloqueResultado(am, am.anotados, async ()=>{ await guardar(); render(); }, am.fecha, am.hora,
+      `amistosos/${data.amistosos.indexOf(am)}/votosMvp`));
     const bDet = document.createElement("button");
     bDet.className="ghost mini full";
     bDet.textContent="Ver detalle";

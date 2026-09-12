@@ -43,12 +43,22 @@ rioplatense — seguí escribiéndolos así.
 
 ## Arquitectura
 
-**Un estado global y escrituras del árbol completo.** Todo el estado vive en un único
-objeto `data` (`index.html:611`). Se persiste con `guardar()` (`index.html:1104`) →
-`equipoRef.set(data)`, que **pisa el nodo `equipo-la-u` entero** en cada cambio. Una sola
-suscripción `equipoRef.on("value", ...)` (`index.html:1148`) mezcla los snapshots de vuelta
-en `data` y vuelve a renderizar, así todos los celus quedan sincronizados. No hay
-escrituras parciales ni transacciones — gana la última escritura.
+**Un estado global y tres formas de guardarlo.** Todo el estado vive en un único objeto
+`data`. Una sola suscripción `equipoRef.on("value", ...)` mezcla los snapshots de vuelta en
+`data` y vuelve a renderizar, así todos los celus quedan sincronizados. Para escribir hay
+tres herramientas, **de menos a más segura**:
+
+| Función | Qué manda | Cuándo usarla |
+|---|---|---|
+| `guardar()` | `equipoRef.set(data)`: **el árbol entero** | cosas que toca un capitán solo (configurar el partido, gastos, asado, plantel) |
+| `guardarRama(ruta, valor)` | solo esa ramita | cuando varios pueden guardar a la vez pero cada uno toca **su** dato (cuota de cada jugador, voto propio) |
+| `cambiarAnotado(sab, pid, entrar)` | transacción sobre `sabados/<fecha>` y `sabadoNo/<fecha>` | listas que varios modifican **al mismo tiempo**: anotarse al sábado |
+
+La regla es por qué se pisan: `guardar()` manda una foto completa de `data`, así que si dos
+personas guardan casi juntas, la segunda revierte lo que hizo la primera. `guardarRama()`
+achica el daño a un solo campo; la transacción lo elimina, porque Firebase reintenta sobre
+el valor del servidor. **Si agregás algo que varios puedan tocar en simultáneo, no uses
+`guardar()`.**
 
 **El ciclo de render.** `render()` (`index.html:1335`) rearma de cero las stats del header,
 la nav de abajo y la pestaña activa dentro de `#contenido`. Cada pestaña es una función
@@ -61,8 +71,27 @@ mismo patrón**:
 btn.onclick = async () => { /* modificar data */ ; await guardar(); render(); };
 ```
 
-Agregar una pestaña = una función `v*()` + una entrada en `TABS` + una en `ICONOS` + una
-línea en `render()`.
+**La barra de abajo tiene solo 4 botones a propósito**: `TABS` son los de uso semanal
+(Partido, Amistosos, Cuota) más "Más"; `SECUNDARIAS` (Plantel, Números, Asado, Cuentas)
+viven detrás de `vMas()` y se abren con un "Volver" arriba. Con la app abierta en una
+secundaria, el que queda encendido en la barra es "Más". La regla es que alguien que entra
+por primera vez vea tres opciones, no siete — **no agregues botones a `TABS`**, sumá a
+`SECUNDARIAS`. Agregar una pantalla = una función `v*()` + una entrada en `SECUNDARIAS` +
+una en `ICONOS` + una línea en `render()`.
+
+**Novedades: hay que mantenerlas a mano.** `VERSION_APP` y `NOVEDADES` están arriba del
+todo en el `<script>`. Cuando entrás y la app tiene una versión más nueva que la guardada
+en `localStorage` (`NOVEDADES_KEY`), salta el cartel una sola vez; el pie de página lo
+vuelve a abrir. **Cada vez que subas un cambio que el equipo pueda notar, sumá una entrada
+a `NOVEDADES` y subí `VERSION_APP`** — si no, el cambio pasa sin que nadie se entere.
+Ojo con `mostrandoNovedades`: existe para que un snapshot de Firebase no le borre el cartel
+al que lo está leyendo.
+
+**Lo importante.** `pendientesMios()` arma la lista de cosas pendientes del jugador que
+está mirando (cuota, si no contestó por el sábado, votar la figura, y para capitanes
+confirmar pagos y cargar resultados) y `bloqueImportante()` la dibuja arriba de la pestaña
+Sábado. Cada ítem lleva `tab` y a veces `fecha`, y al tocarlo salta a esa pestaña y a ese
+sábado. Los avisos viejos siguen viviendo en su propia pestaña; esto es el resumen.
 
 **Identidad y permisos.** No hay autenticación. `miPerfil` (`{id, nombre}`) se guarda en
 `localStorage` bajo `PERSONAL_KEY` y se elige en el modal de entrada `mostrarModal()`
@@ -83,15 +112,17 @@ timeout) coherentes entre sí.
 
 | Clave | Forma | Notas |
 |---|---|---|
-| `jugadores` | `[{id, nombre, exento}]` | el `id` sale de `uid()`, un string random. `exento: true` = es del grupo pero no paga cuota; lo marca un capitán desde Plantel y hace que `cuotaAlDia()` siempre dé `true` |
+| `jugadores` | `[{id, nombre, exento, desde, tel}]` | el `id` sale de `uid()`, un string random. `exento: true` = es del grupo pero no paga cuota; lo marca un capitán desde Plantel y hace que `cuotaAlDia()` siempre dé `true`. `desde` es el id de fecha a partir del cual se le cuenta la deuda (`fechasQueDebe()`); si falta, cuenta desde la primera |
 | `admins` | `[playerId]` | capitanes |
-| `fechasCuota` / `fechaCuotaActual` | `[uid]` / `uid` | fechas de cuota; la última del array es la vigente |
-| `cuota` | `{fechaId: {playerId: {declarado, confirmado}}}` | el jugador declara, el capitán confirma |
-| `sabados` | `{"YYYY-MM-DD": [playerId]}` | lista de anotados; el orden es el de anotación (define la lista de espera según `CUPO_INTERNO`) |
+| `fechasCuota` | `["2026-09", ...]` | una fecha de cuota por mes; el id **es** el mes. `abrirPeriodoSiHaceFalta()` agrega el mes en curso al arrancar (idempotente, lo puede correr cualquier celu), así que nadie tiene que crear fechas a mano. Los ids random de antes de esto siguen funcionando y se etiquetan "Fecha 1", "Fecha 2". La última del array es la vigente. Para cobrar por semana en vez de por mes se cambia `periodoActual()` |
+| `fechaCuotaActual` | — | **muerto**: quedó en la base pero ya no se usa. Cambiar de mes en la pestaña Cuota es local (`fechaVista`); antes se guardaba, y mirar un mes viejo se lo cambiaba a todo el equipo |
+| `cuota` | `{fechaId: {playerId: {declarado, confirmado}}}` | el jugador declara, el capitán confirma. Deber **no bloquea nada**: se avisa en "Lo importante" y con una píldora, pero el que debe se anota igual (antes se le deshabilitaban los botones) |
+| `sabados` | `{"YYYY-MM-DD": [playerId]}` | lista de anotados; el orden es el de anotación (define la lista de espera según `CUPO_INTERNO`). Se toca **solo** con `cambiarAnotado()` |
+| `sabadoNo` | `{"YYYY-MM-DD": [playerId]}` | los que dijeron NO JUEGO. Sin esto, "dijo que no" y "no contestó" eran indistinguibles; `dijoSiJuega()` los separa |
 | `sabadoConfig` | `{"YYYY-MM-DD": {hora, lugar, lugarOtro, modo, rival, resultado, golesF, golesC, votosMvp, goleadores}}` | `modo` es `"interno"` o contra un rival |
 | `amistosos` | `[{id, fecha, hora, rival, anotados, ...mismos campos de resultado}]` | misma forma de resultado/MVP que `sabadoConfig` |
 | `asados` | `[{id, ..., aportes}]` | quién lleva qué, según `APORTES` |
-| `montoCuota`, `gastos` | string, `[{monto, ...}]` | caja del club: `totalRecaudado()` = pagos confirmados × `montoCuota` |
+| `montoCuota`, `alias`, `gastos` | string, string, `[{monto, ...}]` | caja del club: `totalRecaudado()` = pagos confirmados × `montoCuota`. `alias` es el alias para transferir: se muestra en Cuota y se cuela en todos los mensajes de cobranza |
 | `tricount` | `[{monto, pagadorId, participantes}]` | gastos divididos, se saldan con `balancesTricount()` + `liquidar()` |
 
 Los sábados y los amistosos comparten a propósito la misma forma de resultado/MVP, así
@@ -111,8 +142,25 @@ Los sábados y los amistosos comparten a propósito la misma forma de resultado/
   gastos entran tal cual en `innerHTML` por template literals. Tenelo presente antes de
   abrir cualquier input nuevo.
 - Compartir por WhatsApp es armar un texto y abrir `wa.me` con `compartirWsp()` /
-  `pieInvitacion()`; varias vistas tienen su propio armador de mensaje.
-- El estilo es CSS a mano con las variables de `:root` (`index.html:15`) — tema azul
-  oscuro, pensado para el celu, ancho máximo 620px, nav fija abajo. Usá las variables que
-  ya están (`--azul`, `--superficie*`, `--ok`, `--pend`, `--oro`) en vez de meter colores
-  nuevos a mano.
+  `pieInvitacion()`; varias vistas tienen su propio armador de mensaje. Para el chat
+  privado está `wspPrivado(tel, texto)`, que normaliza el teléfono con `telWsp()` (le pone
+  el 54 9 y le saca el 15) y devuelve `false` si el jugador no tiene número cargado — ahí
+  se cae a `copiar()`. Para una lista de difusión no hay link posible: se copia el texto
+  (`textoDifusion()`) y la persona lo pega a mano.
+- **Ser capitán** se consigue con `CODIGO_CAPITAN` al crear el perfil, al entrar con un
+  nombre que ya existe, o desde el botón de Plantel. Antes solo servía la primera vía, y
+  quien ya estaba en la lista quedaba sin poder cargar resultados salvo que otro capitán lo
+  ascendiera con el ☆.
+- El estilo es CSS a mano con las variables de `:root` (`index.html:15`) — violeta oscuro,
+  tomado del escudo del club, pensado para el celu, ancho máximo 620px, nav fija abajo. Usá
+  las variables que ya están (`--violeta`, `--superficie*`, `--ok`, `--pend`, `--oro`) en
+  vez de meter colores nuevos a mano.
+- El escudo es un SVG dibujado a mano en `escudoSVG(ancho)` (escudo violeta, banda
+  "URRACAS", urraca y banderola "FC"), copiado del buzo del equipo. Está en el encabezado
+  (ahí va pegado en el HTML), en el modal de ingreso y en `ESCUDO_SVG`. Para verlo mientras
+  se lo retoca conviene renderizarlo con Edge y `--screenshot`, que muestra cómo queda a
+  46px, que es el tamaño real.
+- **Un resultado sin `resultado` es un partido invisible**: `todosLosPartidos()` filtra por
+  ese campo, así que no entra ni en el historial ni en el balance ni en la racha. Pasó en
+  vivo: cargaron 7-3 y el partido no contó. Por eso `normalizarResultado()` lo deduce del
+  marcador y el formulario acomoda el desplegable solo mientras escribís los goles.
