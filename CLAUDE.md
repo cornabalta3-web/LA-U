@@ -129,6 +129,32 @@ Los sábados y los amistosos comparten a propósito la misma forma de resultado/
 `bloqueResultado()` (`index.html:898`), `normalizarResultado()`, `ganadorMvp()`,
 `golesDe()` y `todosLosPartidos()` sirven para los dos.
 
+## Reglas que no se pueden romper
+
+Cada una salió de un problema real, no de una preferencia:
+
+- **Nunca escribir sin haber leído.** `hayDatos` se prende recién cuando llega el primer
+  snapshot; `guardar()`, `guardarRama()` y `cambiarAnotado()` cortan en seco si está en
+  false. Sin esto, cuando Firebase no contestaba en 6s la app arrancaba con el molde vacío
+  y **el primer guardado borraba la base del equipo entero**.
+- **Nunca `toISOString()` para una fecha del calendario.** Devuelve UTC y Argentina va 3
+  horas atrás: pasadas las 21 hs devolvía el día siguiente, y con la cuota atada al sábado
+  eso abría fechas de domingo. Se usa `isoLocal(d)` / `hoyISO()`.
+- **El snapshot reemplaza, no mezcla.** `data = Object.assign(estadoVacio(), v)`. Con
+  `Object.assign(data, v)` una clave borrada en la base seguía viva en este celu y volvía a
+  subir en el próximo guardado.
+- **Sacar un jugador es `purgarJugador(id)`**, no un filter sobre `jugadores`. Su id vive
+  también en `sabados`, `sabadoNo`, `cuota`, `votosMvp`, `goleadores`, `equipos`, los
+  amistosos, los aportes del asado y el tricount; si queda, ocupa lugar del cupo del sábado
+  y aparece como "(?)" en los mensajes de WhatsApp.
+- **La cuota se cobra por fecha y la paga todo el mundo, juegue o no.** La cancha se paga
+  igual. `fechasQueDebe()` no mira si el jugador estuvo en `data.sabados[f]`: el único que
+  queda afuera es el exento. (Se probó atarla a quién jugó y el dueño lo rechazó de plano.)
+- **No re-renderizar encima de alguien que escribe.** El callback del snapshot se corta si
+  `document.activeElement` es un input/select/textarea; si no, un cambio de otro celu le
+  borraba al capitán el resultado a medio cargar. Por lo mismo el modal de ingreso no se
+  rehace si ya está abierto.
+
 ## Cosas para tener en cuenta
 
 - **Firebase borra los arrays y objetos vacíos.** Todo lo que vuelve faltando hay que
@@ -151,12 +177,13 @@ Los sábados y los amistosos comparten a propósito la misma forma de resultado/
   nombre que ya existe, o desde el botón de Plantel. Antes solo servía la primera vía, y
   quien ya estaba en la lista quedaba sin poder cargar resultados salvo que otro capitán lo
   ascendiera con el ☆.
-- El estilo es CSS a mano con las variables de `:root` (`index.html:15`) — violeta oscuro,
-  tomado del escudo del club, pensado para el celu, ancho máximo 620px, nav fija abajo. Usá
-  las variables que ya están (`--violeta`, `--superficie*`, `--ok`, `--pend`, `--oro`) en
-  vez de meter colores nuevos a mano.
-- El escudo es un SVG dibujado a mano en `escudoSVG(ancho)` (escudo violeta, banda
-  "URRACAS", urraca y banderola "FC"), copiado del buzo del equipo. Está en el encabezado
+- El estilo es CSS a mano con las variables de `:root` (`index.html:15`) — **azul** oscuro,
+  el del escudo, pensado para el celu, ancho máximo 620px, nav fija abajo. Usá las variables
+  que ya están (`--azul`, `--superficie*`, `--ok`, `--pend`, `--oro`) en vez de meter
+  colores nuevos a mano. El violeta del buzo **no** es el color del club: el club es azul
+  porque es una urraca (se probó violeta y el dueño lo corrigió).
+- El escudo es un SVG dibujado a mano en `escudoSVG(ancho)` (campo azul, banda
+  "URRACAS", urraca de ala azul y banderola "FC"). Está en el encabezado
   (ahí va pegado en el HTML), en el modal de ingreso y en `ESCUDO_SVG`. Para verlo mientras
   se lo retoca conviene renderizarlo con Edge y `--screenshot`, que muestra cómo queda a
   46px, que es el tamaño real.
